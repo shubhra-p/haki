@@ -4,12 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:haki/app.dart';
 import 'package:haki/core/database/daos/card_dao.dart';
 import 'package:haki/core/providers/providers.dart';
+import 'package:haki/core/theme/colors.dart';
+import 'package:haki/core/theme/theme.dart';
 import 'package:haki/features/csv_import/csv_import_screen.dart';
 import 'package:haki/features/study/study_screen.dart';
 import 'package:haki/models/models.dart';
+import 'package:haki/shared/widgets.dart';
 
 import 'package:haki/core/database/daos/deck_dao.dart';
 import 'package:haki/features/deck_detail/deck_detail_screen.dart';
+import 'package:haki/features/deck_library/deck_library_screen.dart';
 import 'package:haki/features/insights/insights_screen.dart';
 
 class FakeCardDao implements CardDao {
@@ -558,7 +562,252 @@ void main() {
         await tester.pumpWidget(const SizedBox());
       },
     );
+
+    test('HakiColors adaptive tokens switch based on setDarkMode', () {
+      HakiColors.setDarkMode(false);
+      expect(HakiColors.isDarkMode, isFalse);
+      expect(HakiColors.surface, equals(HakiColors.lightSurface));
+      expect(HakiColors.cardBackground, equals(HakiColors.lightCardBackground));
+      expect(HakiColors.textPrimary, equals(HakiColors.lightTextPrimary));
+
+      HakiColors.setDarkMode(true);
+      expect(HakiColors.isDarkMode, isTrue);
+      expect(HakiColors.surface, equals(HakiColors.darkSurface));
+      expect(HakiColors.cardBackground, equals(HakiColors.darkCardBackground));
+      expect(HakiColors.textPrimary, equals(HakiColors.darkTextPrimary));
+
+      // Reset to light
+      HakiColors.setDarkMode(false);
+    });
+
+    test('ThemeModeNotifier toggles between system, light, and dark', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      expect(container.read(themeModeProvider), equals(ThemeMode.system));
+
+      container.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark);
+      expect(container.read(themeModeProvider), equals(ThemeMode.dark));
+
+      container.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light);
+      expect(container.read(themeModeProvider), equals(ThemeMode.light));
+
+      container.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system);
+      expect(container.read(themeModeProvider), equals(ThemeMode.system));
+    });
+
+    testWidgets('ThemeToggleButton quick toggles between light and dark modes',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final mode = ref.watch(themeModeProvider);
+              return MaterialApp(
+                theme: HakiTheme.light,
+                darkTheme: HakiTheme.dark,
+                themeMode: mode,
+                home: const Scaffold(
+                  body: Center(
+                    child: ThemeToggleButton(),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ThemeToggleButton), findsOneWidget);
+
+      // Tap toggle button (starts at system -> toggles to dark or light depending on system)
+      await tester.tap(find.byType(ThemeToggleButton));
+      await tester.pumpAndSettle();
+
+      final firstToggled = container.read(themeModeProvider);
+      expect(firstToggled != ThemeMode.system, isTrue);
+
+      // Tap again to switch to opposite
+      await tester.tap(find.byType(ThemeToggleButton));
+      await tester.pumpAndSettle();
+
+      final secondToggled = container.read(themeModeProvider);
+      expect(secondToggled != firstToggled, isTrue);
+    });
+
+    testWidgets(
+        'ThemeToggleButton long press opens appearance bottom sheet with all 3 options',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final mode = ref.watch(themeModeProvider);
+              return MaterialApp(
+                theme: HakiTheme.light,
+                darkTheme: HakiTheme.dark,
+                themeMode: mode,
+                home: const Scaffold(
+                  body: Center(
+                    child: ThemeToggleButton(),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Long press to show sheet
+      await tester.longPress(find.byType(ThemeToggleButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Appearance'), findsOneWidget);
+      expect(find.text('System Default'), findsOneWidget);
+      expect(find.text('Light Mode'), findsOneWidget);
+      expect(find.text('Dark Mode'), findsOneWidget);
+
+      // Tap Dark Mode option
+      await tester.tap(find.text('Dark Mode'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(themeModeProvider), equals(ThemeMode.dark));
+    });
+
+    testWidgets(
+        'Theme toggle button is present on InsightsScreen (Progress tab) and removed from DeckLibraryScreen',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final container = ProviderContainer(
+        overrides: [
+          totalReviewCountProvider.overrideWith((ref) => 0),
+          totalStudyTimeProvider.overrideWith((ref) => 0),
+          totalMasteredProvider.overrideWith((ref) => 0),
+          currentStreakProvider.overrideWith((ref) => 0),
+          retentionRateProvider.overrideWith((ref) => 0.0),
+          studyDaysProvider.overrideWith((ref) => []),
+          needsAttentionCardsProvider.overrideWith((ref) => []),
+          filteredDecksProvider
+              .overrideWith((ref) => const AsyncValue.data(<Deck>[])),
+          totalDueCardsProvider.overrideWith((ref) => 0),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Verify DeckLibraryScreen has NO ThemeToggleButton
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: DeckLibraryScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ThemeToggleButton), findsNothing);
+
+      // Verify InsightsScreen (Progress tab) has ThemeToggleButton
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: InsightsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ThemeToggleButton), findsOneWidget);
+
+      // Tap ThemeToggleButton directly in InsightsScreen
+      await tester.tap(find.byType(ThemeToggleButton));
+      await tester.pumpAndSettle();
+
+      // Verify theme instantly switched
+      expect(container.read(themeModeProvider) != ThemeMode.system, isTrue);
+    });
+
+    test('HakiColors darkOnPrimary and darkTextInverse provide high contrast white text', () {
+      HakiColors.setDarkMode(true);
+      expect(HakiColors.textInverse, equals(Colors.white));
+      expect(HakiColors.onPrimary, equals(Colors.white));
+      HakiColors.setDarkMode(false);
+    });
+
+    testWidgets(
+        'StudyHomeScreen top banner and Study buttons render high contrast white text in dark mode',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dummyDeck = Deck(
+        id: 'test-deck',
+        name: 'Japanese - 2 Syllable words',
+        sourceLanguage: 'Japanese',
+        targetLanguage: 'English',
+        totalCards: 44,
+        dueCards: 37,
+        masteredCards: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          allDecksProvider.overrideWith((ref) => Stream.value([dummyDeck])),
+          totalDueCardsProvider.overrideWith((ref) => 37),
+          currentStreakProvider.overrideWith((ref) => 2),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      HakiColors.setDarkMode(true);
+      addTearDown(() => HakiColors.setDarkMode(false));
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: HakiTheme.light,
+            darkTheme: HakiTheme.dark,
+            themeMode: ThemeMode.dark,
+            home: const StudyHomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Top card heading "Ready for Review"
+      final headingTextFinder = find.text('Ready for Review');
+      expect(headingTextFinder, findsOneWidget);
+      final Text headingWidget = tester.widget(headingTextFinder);
+      expect(headingWidget.style?.color, equals(Colors.white));
+
+      // Deck tile Study button
+      final studyButtonFinder = find.widgetWithText(ElevatedButton, 'Study');
+      expect(studyButtonFinder, findsOneWidget);
+      final Text studyTextWidget = tester.widget(find.text('Study'));
+      expect(studyTextWidget.style?.color, equals(Colors.white));
+    });
   });
 }
+
 
 

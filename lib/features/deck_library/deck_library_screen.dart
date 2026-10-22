@@ -40,6 +40,7 @@ class _DeckLibraryScreenState extends ConsumerState<DeckLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final decksAsync = ref.watch(filteredDecksProvider);
     final dueCardsAsync = ref.watch(totalDueCardsProvider);
     final currentStreakAsync = ref.watch(currentStreakProvider);
@@ -118,7 +119,7 @@ class _DeckLibraryScreenState extends ConsumerState<DeckLibraryScreen> {
                   style: HakiTypography.bodyMd,
                   decoration: InputDecoration(
                     hintText: 'Search decks, tags, or vocabulary...',
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.search,
                       color: HakiColors.textDisabled,
                     ),
@@ -130,19 +131,19 @@ class _DeckLibraryScreenState extends ConsumerState<DeckLibraryScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: HakiRadius.fullAll,
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                         color: HakiColors.cardBorder,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: HakiRadius.fullAll,
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                         color: HakiColors.cardBorder,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: HakiRadius.fullAll,
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                         color: HakiColors.primary,
                         width: 1.5,
                       ),
@@ -313,7 +314,7 @@ class _AddButton extends StatelessWidget {
       child: Container(
         width: 36,
         height: 36,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: HakiColors.primary,
           shape: BoxShape.circle,
         ),
@@ -440,12 +441,15 @@ class _DeckCard extends StatelessWidget {
                     if (deck.languagePairLabel != null)
                       HakiPill(
                         label: deck.languagePairLabel!,
-                        backgroundColor:
-                            HakiColors.primary.withValues(alpha: 0.08),
-                        textColor: HakiColors.primary,
+                        backgroundColor: HakiColors.isDarkMode
+                            ? const Color(0xFF262354)
+                            : HakiColors.primary.withValues(alpha: 0.08),
+                        textColor: HakiColors.isDarkMode
+                            ? const Color(0xFFA5B4FC)
+                            : HakiColors.primary,
                       ),
                     if (deck.isCompleted)
-                      const HakiPill(
+                      HakiPill(
                         label: 'Completed',
                         backgroundColor: HakiColors.emeraldTint,
                         textColor: HakiColors.emerald,
@@ -482,7 +486,7 @@ class _DeckCard extends StatelessWidget {
                     child: Text('Delete'),
                   ),
                 ],
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_vert,
                   color: HakiColors.textSecondary,
                 ),
@@ -563,6 +567,8 @@ class _DeckCard extends StatelessWidget {
                     'Quick Flip (${deck.dueCards > 5 ? 5 : deck.dueCards})',
                   ),
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: HakiColors.textPrimary,
+                    side: BorderSide(color: HakiColors.cardBorder),
                     minimumSize: const Size(0, 40),
                     textStyle: HakiTypography.labelMd,
                   ),
@@ -572,11 +578,15 @@ class _DeckCard extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: onStudy,
-                  icon: const Icon(Icons.play_arrow, size: 16),
+                  icon: const Icon(Icons.play_arrow, size: 16, color: Colors.white),
                   label: const Text('Study Now'),
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: HakiColors.isDarkMode
+                        ? const Color(0xFF4F46E5)
+                        : HakiColors.primary,
+                    foregroundColor: Colors.white,
                     minimumSize: const Size(0, 40),
-                    textStyle: HakiTypography.labelMd,
+                    textStyle: HakiTypography.labelMd.copyWith(color: Colors.white),
                   ),
                 ),
               ),

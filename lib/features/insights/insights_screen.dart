@@ -19,6 +19,7 @@ class InsightsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final totalReviewsAsync = ref.watch(totalReviewCountProvider);
     final totalStudyTimeAsync = ref.watch(totalStudyTimeProvider);
     final totalMasteredAsync = ref.watch(totalMasteredProvider);
@@ -89,14 +90,16 @@ class InsightsScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
+                  const ThemeToggleButton(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: HakiColors.primary.withValues(alpha: 0.06),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.auto_awesome,
                       color: HakiColors.primary,
                       size: 22,
@@ -148,11 +151,11 @@ class InsightsScreen extends ConsumerWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(18),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: HakiColors.surfaceContainerLow,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.insights_outlined,
               size: 44,
               color: HakiColors.primary,
@@ -296,7 +299,7 @@ class InsightsScreen extends ConsumerWidget {
                         color: HakiColors.secondary,
                       )
                     else if (isFuture)
-                      const Icon(
+                      Icon(
                         Icons.lock_outline,
                         size: 16,
                         color: HakiColors.textDisabled,
@@ -305,7 +308,7 @@ class InsightsScreen extends ConsumerWidget {
                       Container(
                         width: 18,
                         height: 18,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: HakiColors.roseTint,
                           shape: BoxShape.circle,
                         ),
@@ -316,7 +319,7 @@ class InsightsScreen extends ConsumerWidget {
                         ),
                       )
                     else
-                      const Icon(
+                      Icon(
                         Icons.remove,
                         size: 16,
                         color: HakiColors.textDisabled,
@@ -462,7 +465,7 @@ class InsightsScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.show_chart,
                       size: 14,
                       color: HakiColors.primary,
@@ -895,8 +898,10 @@ class _AttentionCardTile extends StatelessWidget {
           OutlinedButton(
             onPressed: onPractice,
             style: OutlinedButton.styleFrom(
-              foregroundColor: HakiColors.primary,
-              side: const BorderSide(color: HakiColors.cardBorder),
+              foregroundColor: HakiColors.isDarkMode
+                  ? HakiColors.darkTextPrimary
+                  : HakiColors.primary,
+              side: BorderSide(color: HakiColors.cardBorder),
               shape: RoundedRectangleBorder(borderRadius: HakiRadius.fullAll),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             ),
@@ -972,7 +977,7 @@ class _ForgettingCurvePainter extends CustomPainter {
     strokePath.quadraticBezierTo(w * 0.88, h * 0.24, w, h * 0.15);
 
     final strokePaint = Paint()
-      ..shader = const LinearGradient(
+      ..shader = LinearGradient(
         colors: [HakiColors.secondary, HakiColors.primary, HakiColors.tertiary],
       ).createShader(Rect.fromLTWH(0, 0, w, h))
       ..strokeWidth = 3.0

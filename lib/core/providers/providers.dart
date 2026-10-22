@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
+import '../theme/colors.dart';
 import '../database/database.dart';
 import '../database/daos/deck_dao.dart';
 import '../database/daos/card_dao.dart';
@@ -8,7 +12,7 @@ import '../../services/spaced_repetition.dart';
 import '../../services/analytics_calculator.dart';
 import '../../models/models.dart';
 
-// ─── Database ────────────────────────────────────────────────────────
+// Database
 
 /// Singleton database instance
 final databaseProvider = Provider<HakiDatabase>((ref) {
@@ -32,7 +36,7 @@ final reviewDaoProvider = Provider<ReviewDao>((ref) {
   return ref.watch(databaseProvider).reviewDao;
 });
 
-// ─── Services ────────────────────────────────────────────────────────
+// Services
 
 /// Spaced repetition scheduler
 final schedulerProvider = Provider<SpacedRepetitionScheduler>((ref) {
@@ -44,7 +48,7 @@ final analyticsProvider = Provider<AnalyticsCalculator>((ref) {
   return const AnalyticsCalculator();
 });
 
-// ─── Deck Providers ──────────────────────────────────────────────────
+// Deck Providers
 
 /// Watch all decks with stats (reactive stream)
 final allDecksProvider = StreamProvider<List<Deck>>((ref) {
@@ -76,7 +80,7 @@ final totalDueCardsProvider = FutureProvider<int>((ref) async {
   return cards.length;
 });
 
-// ─── Card Providers ──────────────────────────────────────────────────
+// Card Providers
 
 /// Watch cards for a specific deck
 final cardsForDeckProvider =
@@ -90,7 +94,7 @@ final dueCardsForDeckProvider =
   return ref.watch(cardDaoProvider).getDueCards(deckId);
 });
 
-// ─── Global Stats Providers ──────────────────────────────────────────
+// Global Stats Providers
 
 /// Total review count
 final totalReviewCountProvider = FutureProvider<int>((ref) {
@@ -134,4 +138,89 @@ final retentionRateProvider = FutureProvider<double>((ref) async {
 /// Cards needing attention (learning status, errors, or lowest ease factor)
 final needsAttentionCardsProvider = FutureProvider<List<FlashCard>>((ref) {
   return ref.watch(cardDaoProvider).getNeedsAttentionCards(limit: 5);
+});
+
+// Theme Mode Provider
+
+/// Manages and persists application theme mode (System, Light, Dark).
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  ThemeModeNotifier() : super(ThemeMode.system) {
+    _syncHakiColors(ThemeMode.system);
+    _loadSavedTheme();
+  }
+
+  static void _syncHakiColors(ThemeMode mode) {
+    final isDark = switch (mode) {
+      ThemeMode.dark => true,
+      ThemeMode.light => false,
+      ThemeMode.system =>
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark,
+    };
+    HakiColors.setDarkMode(isDark);
+  }
+
+  Future<void> _loadSavedTheme() async {
+    try {
+      final file = await _getSettingsFile();
+      if (file != null && await file.exists()) {
+        final content = await file.readAsString();
+        switch (content.trim()) {
+          case 'dark':
+            _syncHakiColors(ThemeMode.dark);
+            state = ThemeMode.dark;
+            break;
+          case 'light':
+            _syncHakiColors(ThemeMode.light);
+            state = ThemeMode.light;
+            break;
+          case 'system':
+          default:
+            _syncHakiColors(ThemeMode.system);
+            state = ThemeMode.system;
+            break;
+        }
+      }
+    } catch (_) {
+      // Graceful fallback for test or restricted environments
+    }
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _syncHakiColors(mode);
+    state = mode;
+    try {
+      final file = await _getSettingsFile();
+      if (file != null) {
+        final val = switch (mode) {
+          ThemeMode.dark => 'dark',
+          ThemeMode.light => 'light',
+          ThemeMode.system => 'system',
+        };
+        await file.writeAsString(val);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> toggleTheme(BuildContext context) async {
+    final currentIsDark = state == ThemeMode.dark ||
+        (state == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    await setThemeMode(currentIsDark ? ThemeMode.light : ThemeMode.dark);
+  }
+
+  static Future<File?> _getSettingsFile() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      return File('${dir.path}/haki_theme_mode.txt');
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+/// Theme Mode Provider
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  return ThemeModeNotifier();
 });

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/providers/providers.dart';
 import '../core/theme/colors.dart';
 import '../core/theme/typography.dart';
 import '../core/theme/elevation.dart';
@@ -424,3 +426,281 @@ class MetricCard extends StatelessWidget {
     );
   }
 }
+
+/// Tactile button to toggle between Light and Dark mode, or long-press to open theme selector.
+class ThemeToggleButton extends ConsumerWidget {
+  final double size;
+  final EdgeInsetsGeometry padding;
+
+  const ThemeToggleButton({
+    super.key,
+    this.size = 38,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    final isSystemDark =
+        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final isDark = switch (themeMode) {
+      ThemeMode.system => isSystemDark,
+      ThemeMode.dark => true,
+      ThemeMode.light => false,
+    };
+
+    return Padding(
+      padding: padding,
+      child: Tooltip(
+        message: 'Toggle theme (Long press for options)',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
+              ref.read(themeModeProvider.notifier).setThemeMode(newMode);
+            },
+            onLongPress: () => showThemeModeSheet(context, ref),
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: HakiColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: HakiColors.cardBorder,
+                  width: 1,
+                ),
+                boxShadow: HakiElevation.level1,
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, anim) => RotationTransition(
+                  turns: anim,
+                  child: FadeTransition(opacity: anim, child: child),
+                ),
+                child: Icon(
+                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                  key: ValueKey<bool>(isDark),
+                  size: 20,
+                  color: isDark ? HakiColors.accentViolet : HakiColors.amber,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Modal bottom sheet to select System, Light, or Dark theme.
+void showThemeModeSheet(BuildContext context, WidgetRef ref) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (ctx) {
+      final currentMode = ref.watch(themeModeProvider);
+
+      return Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        decoration: BoxDecoration(
+          color: HakiColors.cardBackground,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: HakiColors.cardBorder, width: 1),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: HakiColors.cardBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: HakiColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.palette_rounded,
+                      size: 20,
+                      color: HakiColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Appearance',
+                          style: HakiTypography.headlineSm.copyWith(
+                            color: HakiColors.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          'Choose your preferred theme interface',
+                          style: HakiTypography.bodySm.copyWith(
+                            color: HakiColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _ThemeOptionTile(
+                title: 'System Default',
+                subtitle: 'Automatically matches your device settings',
+                icon: Icons.brightness_auto_rounded,
+                iconColor: HakiColors.primary,
+                isSelected: currentMode == ThemeMode.system,
+                onTap: () {
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setThemeMode(ThemeMode.system);
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 8),
+              _ThemeOptionTile(
+                title: 'Light Mode',
+                subtitle: 'Crisp cream surfaces and warm indigo accents',
+                icon: Icons.light_mode_rounded,
+                iconColor: HakiColors.amber,
+                isSelected: currentMode == ThemeMode.light,
+                onTap: () {
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setThemeMode(ThemeMode.light);
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 8),
+              _ThemeOptionTile(
+                title: 'Dark Mode',
+                subtitle: 'Deep obsidian midnight with violet glow',
+                icon: Icons.dark_mode_rounded,
+                iconColor: HakiColors.accentViolet,
+                isSelected: currentMode == ThemeMode.dark,
+                onTap: () {
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setThemeMode(ThemeMode.dark);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _ThemeOptionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeOptionTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? HakiColors.primary.withValues(alpha: 0.08)
+              : HakiColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? HakiColors.primary : HakiColors.cardBorder,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 20, color: iconColor),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: HakiTypography.bodyMd.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: HakiColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: HakiTypography.bodySm.copyWith(
+                      color: HakiColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle_rounded,
+                color: HakiColors.primary,
+                size: 22,
+              )
+            else
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: HakiColors.cardBorder, width: 1.5),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

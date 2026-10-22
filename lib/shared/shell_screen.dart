@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../core/providers/providers.dart';
 import '../core/theme/colors.dart';
 import '../core/theme/typography.dart';
 
 /// Shell screen with bottom navigation bar.
 ///
 /// Wraps the main navigation tabs: Study, Decks, Create & Import, Progress.
-class ShellScreen extends StatelessWidget {
+class ShellScreen extends ConsumerWidget {
   final Widget child;
 
   const ShellScreen({super.key, required this.child});
@@ -40,15 +42,20 @@ class ShellScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
     final selectedIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
-      body: child,
+      backgroundColor: HakiColors.surface,
+      body: KeyedSubtree(
+        key: ValueKey('shell_page_${themeMode.name}_${HakiColors.isDarkMode}'),
+        child: child,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: HakiColors.cardBackground,
-          border: const Border(
+          border: Border(
             top: BorderSide(
               color: HakiColors.cardBorder,
               width: 1,

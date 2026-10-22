@@ -442,8 +442,10 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: HakiColors.primary,
-              foregroundColor: HakiColors.textInverse,
+              backgroundColor: HakiColors.isDarkMode
+                  ? const Color(0xFF4F46E5)
+                  : HakiColors.primary,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: HakiRadius.fullAll),
             ),
             onPressed: () {
@@ -459,6 +461,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final isNewDeck = widget.existingDeckId == null;
     final padding = HakiSpacing.screenPadding(context);
 
@@ -508,7 +511,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
                       decoration: InputDecoration(
                         labelText: 'Deck Name',
                         hintText: 'e.g. Spanish B2 Vocabulary',
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.style_outlined,
                           color: HakiColors.primary,
                         ),
@@ -794,7 +797,9 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
                   icon: const Icon(Icons.folder_open, size: 16),
                   label: const Text('Browse Files'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: HakiColors.primary,
+                    foregroundColor: HakiColors.isDarkMode
+                        ? HakiColors.darkTextPrimary
+                        : HakiColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: HakiRadius.fullAll,
                     ),
@@ -902,7 +907,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.table_chart_outlined,
                 color: HakiColors.primary,
                 size: 20,
@@ -1012,7 +1017,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
                     .copyWith(color: HakiColors.textPrimary),
                 items: [
                   if (allowNone)
-                    const DropdownMenuItem<int?>(
+                    DropdownMenuItem<int?>(
                       value: null,
                       child: Text(
                         '(None)',

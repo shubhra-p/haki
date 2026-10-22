@@ -27,6 +27,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final deckAsync = ref.watch(deckByIdProvider(widget.deckId));
     final cardsAsync = ref.watch(cardsForDeckProvider(widget.deckId));
     final padding = HakiSpacing.screenPadding(context);
@@ -112,17 +113,17 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
               decoration: InputDecoration(
                 hintText: 'Search cards...',
                 prefixIcon:
-                    const Icon(Icons.search, color: HakiColors.textDisabled),
+                    Icon(Icons.search, color: HakiColors.textDisabled),
                 isDense: true,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: HakiRadius.fullAll,
-                  borderSide: const BorderSide(color: HakiColors.cardBorder),
+                  borderSide: BorderSide(color: HakiColors.cardBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: HakiRadius.fullAll,
-                  borderSide: const BorderSide(color: HakiColors.cardBorder),
+                  borderSide: BorderSide(color: HakiColors.cardBorder),
                 ),
               ),
             ),
@@ -656,7 +657,7 @@ class _CardListTile extends StatelessWidget {
                 ),
                 const PopupMenuItem(value: 'delete', child: Text('Delete')),
               ],
-              icon: const Icon(
+              icon: Icon(
                 Icons.more_horiz,
                 color: HakiColors.textDisabled,
                 size: 20,

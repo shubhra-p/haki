@@ -21,6 +21,7 @@ class StudyHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final decksAsync = ref.watch(allDecksProvider);
     final dueCardsAsync = ref.watch(totalDueCardsProvider);
     final streakAsync = ref.watch(currentStreakProvider);
@@ -79,11 +80,11 @@ class StudyHomeScreen extends ConsumerWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: HakiColors.surfaceContainerLow,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.school_outlined,
                         size: 48,
                         color: HakiColors.primary,
@@ -174,8 +175,11 @@ class _DailyBlastBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: HakiColors.primaryContainer,
+        gradient: HakiColors.reviewBannerGradient,
         borderRadius: BorderRadius.circular(24),
+        border: HakiColors.isDarkMode
+            ? Border.all(color: HakiColors.cardBorder, width: 1)
+            : null,
         boxShadow: HakiElevation.level2,
       ),
       child: Column(
@@ -184,35 +188,42 @@ class _DailyBlastBanner extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: HakiColors.secondary.withValues(alpha: 0.2),
-                  borderRadius: HakiRadius.fullAll,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.bolt,
-                      color: HakiColors.secondary,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'SPACED REPETITION',
-                      style: HakiTypography.labelSm.copyWith(
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: HakiColors.secondary.withValues(alpha: 0.2),
+                    borderRadius: HakiRadius.fullAll,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.bolt,
                         color: HakiColors.secondary,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                        size: 14,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'SPACED REPETITION',
+                          style: HakiTypography.labelSm.copyWith(
+                            color: HakiColors.secondary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              if (streak > 0)
+              if (streak > 0) ...[
+                const SizedBox(width: 8),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
                       Icons.local_fire_department,
@@ -223,19 +234,20 @@ class _DailyBlastBanner extends StatelessWidget {
                     Text(
                       '$streak Days Hot',
                       style: HakiTypography.labelSm.copyWith(
-                        color: HakiColors.textInverse,
+                        color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 16),
           Text(
             'Ready for Review',
             style: HakiTypography.headlineLgMobile.copyWith(
-              color: HakiColors.textInverse,
+              color: Colors.white,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -243,7 +255,7 @@ class _DailyBlastBanner extends StatelessWidget {
           Text(
             '$dueCount cards across $activeDeckCount active decks are slipping your memory curve.',
             style: HakiTypography.bodySm.copyWith(
-              color: HakiColors.textInverse.withValues(alpha: 0.8),
+              color: Colors.white.withValues(alpha: 0.88),
             ),
           ),
           const SizedBox(height: 20),
@@ -380,8 +392,12 @@ class _StudyDeckTile extends StatelessWidget {
                     children: [
                       HakiPill(
                         label: deck.sourceLanguage ?? 'General',
-                        backgroundColor: HakiColors.surfaceContainerLow,
-                        textColor: HakiColors.primary,
+                        backgroundColor: HakiColors.isDarkMode
+                            ? const Color(0xFF262354)
+                            : HakiColors.surfaceContainerLow,
+                        textColor: HakiColors.isDarkMode
+                            ? const Color(0xFFA5B4FC)
+                            : HakiColors.primary,
                         fontSize: 10,
                       ),
                       if (due > 0)
@@ -426,18 +442,22 @@ class _StudyDeckTile extends StatelessWidget {
               onPressed: () => context.push('/study/${deck.id}'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: due > 0
-                    ? HakiColors.primary
+                    ? (HakiColors.isDarkMode
+                        ? const Color(0xFF4F46E5)
+                        : HakiColors.primary)
                     : HakiColors.surfaceContainerHigh,
                 foregroundColor:
-                    due > 0 ? HakiColors.textInverse : HakiColors.textPrimary,
+                    due > 0 ? Colors.white : HakiColors.textPrimary,
                 shape: RoundedRectangleBorder(borderRadius: HakiRadius.fullAll),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               ),
               child: Text(
                 due > 0 ? 'Study' : 'Flip',
-                style: HakiTypography.labelSm
-                    .copyWith(fontWeight: FontWeight.bold),
+                style: HakiTypography.labelSm.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: due > 0 ? Colors.white : HakiColors.textPrimary,
+                ),
               ),
             ),
           ],
@@ -647,15 +667,16 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final deckAsync = ref.watch(deckByIdProvider(widget.deckId));
     final showReadingOnFront = deckAsync.valueOrNull?.showReadingOnFront ?? true;
     final streakAsync = ref.watch(currentStreakProvider);
     final streak = streakAsync.valueOrNull ?? 0;
 
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: HakiColors.surface,
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -729,7 +750,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.style,
                               size: 14,
                               color: HakiColors.primary,
@@ -829,7 +850,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                     padding: const EdgeInsets.all(6),
                     constraints:
                         const BoxConstraints(minWidth: 36, minHeight: 36),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.close,
                       color: HakiColors.textSecondary,
                       size: 20,
@@ -850,7 +871,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.content_copy,
                           size: 16,
                           color: HakiColors.primary,
@@ -921,7 +942,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.schedule,
                               size: 12,
                               color: HakiColors.textSecondary,
@@ -956,7 +977,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       FractionallySizedBox(
                         widthFactor: progress.clamp(0.0, 1.0),
                         child: Container(
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
                                 HakiColors.primary,
@@ -1121,9 +1142,15 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       label: 'Good',
                       interval: '1 day',
                       icon: Icons.check,
-                      bgColor: const Color(0xFFEEF2FF),
-                      borderColor: const Color(0xFFC7D2FE),
-                      textColor: HakiColors.primary,
+                      bgColor: HakiColors.isDarkMode
+                          ? const Color(0xFF262354)
+                          : HakiColors.primary.withValues(alpha: 0.12),
+                      borderColor: HakiColors.isDarkMode
+                          ? const Color(0xFF4F46E5)
+                          : HakiColors.primary.withValues(alpha: 0.25),
+                      textColor: HakiColors.isDarkMode
+                          ? Colors.white
+                          : HakiColors.primary,
                       onTap: () => _submitRating(ReviewRating.good),
                     ),
                   ),
@@ -1266,7 +1293,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                     color: HakiColors.primary.withValues(alpha: 0.06),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.volume_up_rounded,
                     color: HakiColors.primary,
                     size: 28,
@@ -1302,7 +1329,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.visibility_off_outlined,
                         size: 13,
                         color: HakiColors.textDisabled,
@@ -1330,7 +1357,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.touch_app_outlined,
                     size: 16,
                     color: HakiColors.primary,
@@ -1448,7 +1475,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.flip_to_front,
                 size: 16,
                 color: HakiColors.primary,
@@ -1612,7 +1639,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                     });
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: HakiColors.primary,
+                    foregroundColor: HakiColors.isDarkMode
+                        ? HakiColors.darkTextPrimary
+                        : HakiColors.primary,
+                    side: BorderSide(color: HakiColors.cardBorder),
                     shape: RoundedRectangleBorder(
                       borderRadius: HakiRadius.fullAll,
                     ),

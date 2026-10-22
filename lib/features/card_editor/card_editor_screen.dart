@@ -73,6 +73,7 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     return Scaffold(
       backgroundColor: HakiColors.surface,
       appBar: AppBar(
@@ -194,7 +195,8 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
                 icon: Icons.add,
                 onPressed: _isLoading ? null : _saveAndAddAnother,
                 backgroundColor: HakiColors.surfaceContainerHigh,
-                foregroundColor: HakiColors.primary,
+                foregroundColor:
+                    HakiColors.isDarkMode ? Colors.white : HakiColors.primary,
               ),
             ],
           ],
