@@ -34,6 +34,16 @@ class $DeckTableTable extends DeckTable
   late final GeneratedColumn<String> targetLanguage = GeneratedColumn<String>(
       'target_language', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _showReadingOnFrontMeta =
+      const VerificationMeta('showReadingOnFront');
+  @override
+  late final GeneratedColumn<bool> showReadingOnFront = GeneratedColumn<bool>(
+      'show_reading_on_front', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("show_reading_on_front" IN (0, 1))'),
+      defaultValue: const Constant(true));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -62,6 +72,7 @@ class $DeckTableTable extends DeckTable
         name,
         sourceLanguage,
         targetLanguage,
+        showReadingOnFront,
         createdAt,
         updatedAt,
         lastStudiedAt
@@ -99,6 +110,12 @@ class $DeckTableTable extends DeckTable
           targetLanguage.isAcceptableOrUnknown(
               data['target_language']!, _targetLanguageMeta));
     }
+    if (data.containsKey('show_reading_on_front')) {
+      context.handle(
+          _showReadingOnFrontMeta,
+          showReadingOnFront.isAcceptableOrUnknown(
+              data['show_reading_on_front']!, _showReadingOnFrontMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -130,6 +147,8 @@ class $DeckTableTable extends DeckTable
           .read(DriftSqlType.string, data['${effectivePrefix}source_language']),
       targetLanguage: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}target_language']),
+      showReadingOnFront: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}show_reading_on_front'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -150,6 +169,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
   final String name;
   final String? sourceLanguage;
   final String? targetLanguage;
+  final bool showReadingOnFront;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? lastStudiedAt;
@@ -158,6 +178,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
       required this.name,
       this.sourceLanguage,
       this.targetLanguage,
+      required this.showReadingOnFront,
       required this.createdAt,
       required this.updatedAt,
       this.lastStudiedAt});
@@ -172,6 +193,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
     if (!nullToAbsent || targetLanguage != null) {
       map['target_language'] = Variable<String>(targetLanguage);
     }
+    map['show_reading_on_front'] = Variable<bool>(showReadingOnFront);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || lastStudiedAt != null) {
@@ -190,6 +212,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
       targetLanguage: targetLanguage == null && nullToAbsent
           ? const Value.absent()
           : Value(targetLanguage),
+      showReadingOnFront: Value(showReadingOnFront),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       lastStudiedAt: lastStudiedAt == null && nullToAbsent
@@ -206,6 +229,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
       name: serializer.fromJson<String>(json['name']),
       sourceLanguage: serializer.fromJson<String?>(json['sourceLanguage']),
       targetLanguage: serializer.fromJson<String?>(json['targetLanguage']),
+      showReadingOnFront: serializer.fromJson<bool>(json['showReadingOnFront']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       lastStudiedAt: serializer.fromJson<DateTime?>(json['lastStudiedAt']),
@@ -219,6 +243,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
       'name': serializer.toJson<String>(name),
       'sourceLanguage': serializer.toJson<String?>(sourceLanguage),
       'targetLanguage': serializer.toJson<String?>(targetLanguage),
+      'showReadingOnFront': serializer.toJson<bool>(showReadingOnFront),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'lastStudiedAt': serializer.toJson<DateTime?>(lastStudiedAt),
@@ -230,6 +255,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
           String? name,
           Value<String?> sourceLanguage = const Value.absent(),
           Value<String?> targetLanguage = const Value.absent(),
+          bool? showReadingOnFront,
           DateTime? createdAt,
           DateTime? updatedAt,
           Value<DateTime?> lastStudiedAt = const Value.absent()}) =>
@@ -240,6 +266,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
             sourceLanguage.present ? sourceLanguage.value : this.sourceLanguage,
         targetLanguage:
             targetLanguage.present ? targetLanguage.value : this.targetLanguage,
+        showReadingOnFront: showReadingOnFront ?? this.showReadingOnFront,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         lastStudiedAt:
@@ -255,6 +282,9 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
       targetLanguage: data.targetLanguage.present
           ? data.targetLanguage.value
           : this.targetLanguage,
+      showReadingOnFront: data.showReadingOnFront.present
+          ? data.showReadingOnFront.value
+          : this.showReadingOnFront,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       lastStudiedAt: data.lastStudiedAt.present
@@ -270,6 +300,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
           ..write('name: $name, ')
           ..write('sourceLanguage: $sourceLanguage, ')
           ..write('targetLanguage: $targetLanguage, ')
+          ..write('showReadingOnFront: $showReadingOnFront, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('lastStudiedAt: $lastStudiedAt')
@@ -279,7 +310,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
 
   @override
   int get hashCode => Object.hash(id, name, sourceLanguage, targetLanguage,
-      createdAt, updatedAt, lastStudiedAt);
+      showReadingOnFront, createdAt, updatedAt, lastStudiedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -288,6 +319,7 @@ class DeckTableData extends DataClass implements Insertable<DeckTableData> {
           other.name == this.name &&
           other.sourceLanguage == this.sourceLanguage &&
           other.targetLanguage == this.targetLanguage &&
+          other.showReadingOnFront == this.showReadingOnFront &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.lastStudiedAt == this.lastStudiedAt);
@@ -298,6 +330,7 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
   final Value<String> name;
   final Value<String?> sourceLanguage;
   final Value<String?> targetLanguage;
+  final Value<bool> showReadingOnFront;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> lastStudiedAt;
@@ -307,6 +340,7 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
     this.name = const Value.absent(),
     this.sourceLanguage = const Value.absent(),
     this.targetLanguage = const Value.absent(),
+    this.showReadingOnFront = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.lastStudiedAt = const Value.absent(),
@@ -317,6 +351,7 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
     required String name,
     this.sourceLanguage = const Value.absent(),
     this.targetLanguage = const Value.absent(),
+    this.showReadingOnFront = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.lastStudiedAt = const Value.absent(),
@@ -328,6 +363,7 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
     Expression<String>? name,
     Expression<String>? sourceLanguage,
     Expression<String>? targetLanguage,
+    Expression<bool>? showReadingOnFront,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? lastStudiedAt,
@@ -338,6 +374,8 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
       if (name != null) 'name': name,
       if (sourceLanguage != null) 'source_language': sourceLanguage,
       if (targetLanguage != null) 'target_language': targetLanguage,
+      if (showReadingOnFront != null)
+        'show_reading_on_front': showReadingOnFront,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (lastStudiedAt != null) 'last_studied_at': lastStudiedAt,
@@ -350,6 +388,7 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
       Value<String>? name,
       Value<String?>? sourceLanguage,
       Value<String?>? targetLanguage,
+      Value<bool>? showReadingOnFront,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<DateTime?>? lastStudiedAt,
@@ -359,6 +398,7 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
       name: name ?? this.name,
       sourceLanguage: sourceLanguage ?? this.sourceLanguage,
       targetLanguage: targetLanguage ?? this.targetLanguage,
+      showReadingOnFront: showReadingOnFront ?? this.showReadingOnFront,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastStudiedAt: lastStudiedAt ?? this.lastStudiedAt,
@@ -380,6 +420,9 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
     }
     if (targetLanguage.present) {
       map['target_language'] = Variable<String>(targetLanguage.value);
+    }
+    if (showReadingOnFront.present) {
+      map['show_reading_on_front'] = Variable<bool>(showReadingOnFront.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -403,6 +446,7 @@ class DeckTableCompanion extends UpdateCompanion<DeckTableData> {
           ..write('name: $name, ')
           ..write('sourceLanguage: $sourceLanguage, ')
           ..write('targetLanguage: $targetLanguage, ')
+          ..write('showReadingOnFront: $showReadingOnFront, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('lastStudiedAt: $lastStudiedAt, ')
@@ -2173,6 +2217,7 @@ typedef $$DeckTableTableCreateCompanionBuilder = DeckTableCompanion Function({
   required String name,
   Value<String?> sourceLanguage,
   Value<String?> targetLanguage,
+  Value<bool> showReadingOnFront,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> lastStudiedAt,
@@ -2183,6 +2228,7 @@ typedef $$DeckTableTableUpdateCompanionBuilder = DeckTableCompanion Function({
   Value<String> name,
   Value<String?> sourceLanguage,
   Value<String?> targetLanguage,
+  Value<bool> showReadingOnFront,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> lastStudiedAt,
@@ -2210,6 +2256,7 @@ class $$DeckTableTableTableManager extends RootTableManager<
             Value<String> name = const Value.absent(),
             Value<String?> sourceLanguage = const Value.absent(),
             Value<String?> targetLanguage = const Value.absent(),
+            Value<bool> showReadingOnFront = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> lastStudiedAt = const Value.absent(),
@@ -2220,6 +2267,7 @@ class $$DeckTableTableTableManager extends RootTableManager<
             name: name,
             sourceLanguage: sourceLanguage,
             targetLanguage: targetLanguage,
+            showReadingOnFront: showReadingOnFront,
             createdAt: createdAt,
             updatedAt: updatedAt,
             lastStudiedAt: lastStudiedAt,
@@ -2230,6 +2278,7 @@ class $$DeckTableTableTableManager extends RootTableManager<
             required String name,
             Value<String?> sourceLanguage = const Value.absent(),
             Value<String?> targetLanguage = const Value.absent(),
+            Value<bool> showReadingOnFront = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> lastStudiedAt = const Value.absent(),
@@ -2240,6 +2289,7 @@ class $$DeckTableTableTableManager extends RootTableManager<
             name: name,
             sourceLanguage: sourceLanguage,
             targetLanguage: targetLanguage,
+            showReadingOnFront: showReadingOnFront,
             createdAt: createdAt,
             updatedAt: updatedAt,
             lastStudiedAt: lastStudiedAt,
@@ -2268,6 +2318,11 @@ class $$DeckTableTableFilterComposer
 
   ColumnFilters<String> get targetLanguage => $state.composableBuilder(
       column: $state.table.targetLanguage,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get showReadingOnFront => $state.composableBuilder(
+      column: $state.table.showReadingOnFront,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -2351,6 +2406,11 @@ class $$DeckTableTableOrderingComposer
 
   ColumnOrderings<String> get targetLanguage => $state.composableBuilder(
       column: $state.table.targetLanguage,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get showReadingOnFront => $state.composableBuilder(
+      column: $state.table.showReadingOnFront,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

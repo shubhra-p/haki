@@ -8,6 +8,10 @@ import 'package:haki/features/csv_import/csv_import_screen.dart';
 import 'package:haki/features/study/study_screen.dart';
 import 'package:haki/models/models.dart';
 
+import 'package:haki/core/database/daos/deck_dao.dart';
+import 'package:haki/features/deck_detail/deck_detail_screen.dart';
+import 'package:haki/features/insights/insights_screen.dart';
+
 class FakeCardDao implements CardDao {
   final List<FlashCard> cards;
   FakeCardDao(this.cards);
@@ -17,6 +21,44 @@ class FakeCardDao implements CardDao {
 
   @override
   Future<List<FlashCard>> getCardsForDeck(String deckId) async => cards;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class FakeDeckDao implements DeckDao {
+  Deck? currentDeck;
+  FakeDeckDao(this.currentDeck);
+
+  @override
+  Future<Deck?> getDeckById(String id) async => currentDeck;
+
+  @override
+  Stream<Deck?> watchDeckById(String id) => Stream.value(currentDeck);
+
+  @override
+  Stream<List<Deck>> watchAllDecks() =>
+      Stream.value(currentDeck != null ? [currentDeck!] : []);
+
+  @override
+  Future<void> updateDeck({
+    required String id,
+    String? name,
+    String? sourceLanguage,
+    String? targetLanguage,
+    bool? showReadingOnFront,
+    bool clearSourceLanguage = false,
+    bool clearTargetLanguage = false,
+  }) async {
+    if (currentDeck != null) {
+      currentDeck = currentDeck!.copyWith(
+        name: name,
+        sourceLanguage: clearSourceLanguage ? null : sourceLanguage,
+        targetLanguage: clearTargetLanguage ? null : targetLanguage,
+        showReadingOnFront: showReadingOnFront,
+      );
+    }
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -213,4 +255,310 @@ void main() {
       },
     );
   });
+
+  group('Feature: Front/Back Reading Placement for Character Recognition', () {
+    testWidgets(
+      'When showReadingOnFront is true, front shows reading & transliteration',
+      (WidgetTester tester) async {
+        final card = FlashCard(
+          id: 'card-1',
+          deckId: 'deck-jp',
+          word: '食べる',
+          meaning: 'to eat',
+          transliteration: 'taberu',
+          pronunciation: 'ta-be-ru',
+          reviewStatus: ReviewStatus.newCard,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        final deck = Deck(
+          id: 'deck-jp',
+          name: 'Japanese JLPT N4',
+          sourceLanguage: 'Japanese',
+          targetLanguage: 'English',
+          showReadingOnFront: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              cardDaoProvider.overrideWithValue(FakeCardDao([card])),
+              deckByIdProvider('deck-jp').overrideWith(
+                (ref) => Stream.value(deck),
+              ),
+              currentStreakProvider.overrideWith((ref) => 3),
+            ],
+            child: const MaterialApp(
+              home: StudySessionScreen(deckId: 'deck-jp'),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Front displays word, pronunciation, and transliteration
+        expect(find.text('食べる'), findsOneWidget);
+        expect(find.text('ta-be-ru'), findsOneWidget);
+        expect(find.text('taberu'), findsOneWidget);
+        expect(find.text('Readings on back'), findsNothing);
+
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+
+    testWidgets(
+      'When showReadingOnFront is false, front hides reading & back reveals it on flip',
+      (WidgetTester tester) async {
+        final card = FlashCard(
+          id: 'card-1',
+          deckId: 'deck-jp-hide',
+          word: '食べる',
+          meaning: 'to eat',
+          transliteration: 'taberu',
+          pronunciation: 'ta-be-ru',
+          reviewStatus: ReviewStatus.newCard,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        final deck = Deck(
+          id: 'deck-jp-hide',
+          name: 'Japanese Kanji Recognition',
+          sourceLanguage: 'Japanese',
+          targetLanguage: 'English',
+          showReadingOnFront: false,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              cardDaoProvider.overrideWithValue(FakeCardDao([card])),
+              deckByIdProvider('deck-jp-hide').overrideWith(
+                (ref) => Stream.value(deck),
+              ),
+              currentStreakProvider.overrideWith((ref) => 3),
+            ],
+            child: const MaterialApp(
+              home: StudySessionScreen(deckId: 'deck-jp-hide'),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // On Front: Character is displayed, but reading & transliteration are HIDDEN
+        expect(find.text('食べる'), findsOneWidget);
+        expect(find.text('ta-be-ru'), findsNothing);
+        expect(find.text('taberu'), findsNothing);
+        expect(find.text('Readings on back'), findsOneWidget);
+
+        // Tap the card to flip
+        await tester.tap(find.text('食べる'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        // On Back: Meaning and revealed readings (transliteration + pronunciation) are now visible!
+        expect(find.text('to eat'), findsOneWidget);
+        expect(find.text('taberu'), findsOneWidget);
+        expect(find.text('ta-be-ru'), findsOneWidget);
+
+        // Verify layout hierarchy on the back: Character -> Meaning -> Pronunciation -> Reading
+        final wordPos = tester.getTopLeft(find.text('食べる')).dy;
+        final meaningPos = tester.getTopLeft(find.text('to eat')).dy;
+        final pronunciationPos = tester.getTopLeft(find.text('ta-be-ru')).dy;
+        final transliterationPos = tester.getTopLeft(find.text('taberu')).dy;
+
+        expect(
+          wordPos < meaningPos,
+          isTrue,
+          reason: 'Character/word must appear above meaning on card back',
+        );
+        expect(
+          meaningPos < pronunciationPos,
+          isTrue,
+          reason: 'Meaning must appear directly below character/word, before pronunciation on card back',
+        );
+        expect(
+          pronunciationPos < transliterationPos,
+          isTrue,
+          reason: 'Pronunciation must appear before transliteration/reading on card back',
+        );
+
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+
+    testWidgets(
+      'DeckDetailScreen renders reading placement toggle and responds to interaction',
+      (WidgetTester tester) async {
+        final deck = Deck(
+          id: 'deck-settings',
+          name: 'Kanji Core 1000',
+          sourceLanguage: 'Japanese',
+          targetLanguage: 'English',
+          showReadingOnFront: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        final fakeDeckDao = FakeDeckDao(deck);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              deckDaoProvider.overrideWithValue(fakeDeckDao),
+              deckByIdProvider('deck-settings').overrideWith(
+                (ref) => Stream.value(fakeDeckDao.currentDeck),
+              ),
+              cardsForDeckProvider('deck-settings').overrideWith(
+                (ref) => Stream.value([]),
+              ),
+            ],
+            child: const MaterialApp(
+              home: DeckDetailScreen(deckId: 'deck-settings'),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify Reading Placement card is displayed
+        expect(find.text('Card Readings'), findsOneWidget);
+        expect(find.text('Shown on Front'), findsOneWidget);
+        expect(find.text('Back'), findsOneWidget);
+
+        // Tap 'Back' segment
+        await tester.tap(find.text('Back'));
+        await tester.pumpAndSettle();
+
+        // Verify updateDeck was called with showReadingOnFront: false
+        expect(fakeDeckDao.currentDeck?.showReadingOnFront, isFalse);
+      },
+    );
+
+    testWidgets(
+      'Issue: Long deck name does not cause RenderFlex overflow on top bar or deck cards on narrow screens',
+      (WidgetTester tester) async {
+        // Emulate a standard compact mobile viewport (360x800)
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final longNamedDeck = Deck(
+          id: 'deck-long-name',
+          name: 'Japanese Advanced JLPT N1 Comprehensive Master Vocabulary Deck With Very Long Title',
+          sourceLanguage: 'Japanese',
+          targetLanguage: 'English',
+          showReadingOnFront: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        final card = FlashCard(
+          id: 'c-long-1',
+          deckId: 'deck-long-name',
+          word: '挨拶',
+          meaning: 'greeting',
+          reviewStatus: ReviewStatus.newCard,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              cardDaoProvider.overrideWithValue(FakeCardDao([card])),
+              deckByIdProvider('deck-long-name').overrideWith(
+                (ref) => Stream.value(longNamedDeck),
+              ),
+              currentStreakProvider.overrideWith((ref) => 15),
+            ],
+            child: const MaterialApp(
+              home: StudySessionScreen(deckId: 'deck-long-name'),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Ensure zero layout overflow errors were captured
+        expect(tester.takeException(), isNull);
+
+        // Verify all top-bar elements remain rendered and visible
+        expect(find.byIcon(Icons.style), findsOneWidget);
+        expect(find.byIcon(Icons.subtitles_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.local_fire_department), findsOneWidget);
+        expect(find.byIcon(Icons.close), findsAtLeastNWidgets(1));
+
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+
+    testWidgets(
+      'Issue: Forgetting curve card and insights screen render with 0 overflow on compact mobile screens',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        FlutterErrorDetails? caughtDetails;
+        final originalOnError = FlutterError.onError;
+        FlutterError.onError = (FlutterErrorDetails details) {
+          caughtDetails = details;
+        };
+
+        final dummyCard = FlashCard(
+          id: 'card-1',
+          deckId: 'deck-10',
+          word: 'Supercalifragilisticexpialidocious',
+          pronunciation: 'soo-per-kal-uh-fraj-uh-lis-tik-ek-spee-al-i-doh-shus',
+          meaning: 'Extraordinarily good; wonderful with extremely long explanation',
+          intervalDays: 1,
+          easeFactor: 1.3,
+          incorrectCount: 5,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              totalReviewCountProvider.overrideWith((ref) => 42),
+              totalStudyTimeProvider.overrideWith((ref) => 1800),
+              totalMasteredProvider.overrideWith((ref) => 12),
+              currentStreakProvider.overrideWith((ref) => 5),
+              retentionRateProvider.overrideWith((ref) => 0.88),
+              studyDaysProvider.overrideWith((ref) => [DateTime.now()]),
+              needsAttentionCardsProvider.overrideWith((ref) => [dummyCard]),
+            ],
+            child: const MaterialApp(
+              home: InsightsScreen(),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        FlutterError.onError = originalOnError;
+
+        expect(caughtDetails, isNull);
+        expect(find.text('Forgetting Curve'), findsOneWidget);
+        expect(find.text('SRS v2 (Projected)'), findsOneWidget);
+        expect(find.text('LEARNING 1'), findsOneWidget);
+        expect(find.text('MASTERED'), findsOneWidget);
+        expect(find.text('Supercalifragilisticexpialidocious'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  });
 }
+
+

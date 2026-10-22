@@ -35,7 +35,11 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
       backgroundColor: HakiColors.surface,
       appBar: AppBar(
         title: deckAsync.when(
-          data: (deck) => Text(deck?.name ?? 'Deck'),
+          data: (deck) => Text(
+            deck?.name ?? 'Deck',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           loading: () => const Text('Loading...'),
           error: (_, __) => const Text('Error'),
         ),
@@ -54,6 +58,14 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
             onSelected: _handleMenuAction,
             itemBuilder: (ctx) => [
               const PopupMenuItem(value: 'rename', child: Text('Rename')),
+              PopupMenuItem(
+                value: 'togglePlacement',
+                child: Text(
+                  (deckAsync.valueOrNull?.showReadingOnFront ?? true)
+                      ? 'Move Readings to Back'
+                      : 'Move Readings to Front',
+                ),
+              ),
               const PopupMenuItem(value: 'delete', child: Text('Delete Deck')),
             ],
           ),
@@ -66,6 +78,26 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
             data: (deck) {
               if (deck == null) return const SizedBox.shrink();
               return _DeckStatsHeader(deck: deck);
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+
+          // Reading Placement Setting Card
+          deckAsync.when(
+            data: (deck) {
+              if (deck == null) return const SizedBox.shrink();
+              return _ReadingPlacementCard(
+                showReadingOnFront: deck.showReadingOnFront,
+                onChanged: (val) async {
+                  await ref.read(deckDaoProvider).updateDeck(
+                        id: widget.deckId,
+                        showReadingOnFront: val,
+                      );
+                  ref.invalidate(deckByIdProvider(widget.deckId));
+                  ref.invalidate(allDecksProvider);
+                },
+              );
             },
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
@@ -164,9 +196,35 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
       case 'rename':
         _showRenameDialog();
         break;
+      case 'togglePlacement':
+        _toggleReadingPlacement();
+        break;
       case 'delete':
         _confirmDeleteDeck();
         break;
+    }
+  }
+
+  Future<void> _toggleReadingPlacement() async {
+    final deck = ref.read(deckByIdProvider(widget.deckId)).valueOrNull;
+    if (deck == null) return;
+    final next = !deck.showReadingOnFront;
+    await ref.read(deckDaoProvider).updateDeck(
+          id: widget.deckId,
+          showReadingOnFront: next,
+        );
+    ref.invalidate(deckByIdProvider(widget.deckId));
+    ref.invalidate(allDecksProvider);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            next
+                ? 'Readings placed on Front of card'
+                : 'Readings placed on Back (revealed on flip)',
+          ),
+        ),
+      );
     }
   }
 
@@ -379,6 +437,99 @@ class _DeckStatsHeader extends StatelessWidget {
                     ],
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReadingPlacementCard extends StatelessWidget {
+  final bool showReadingOnFront;
+  final ValueChanged<bool> onChanged;
+
+  const _ReadingPlacementCard({
+    required this.showReadingOnFront,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: HakiSpacing.screenPadding(context).copyWith(top: 8, bottom: 4),
+      child: HakiCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: showReadingOnFront
+                    ? HakiColors.primary.withValues(alpha: 0.1)
+                    : HakiColors.secondary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                showReadingOnFront
+                    ? Icons.subtitles_outlined
+                    : Icons.subtitles_off_outlined,
+                color: showReadingOnFront
+                    ? HakiColors.primary
+                    : HakiColors.secondary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Card Readings',
+                    style: HakiTypography.labelLg.copyWith(
+                      color: HakiColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    showReadingOnFront
+                        ? 'Shown on Front'
+                        : 'Shown on Back (flip to reveal)',
+                    style: HakiTypography.bodySm.copyWith(
+                      color: HakiColors.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment<bool>(
+                  value: true,
+                  label: Text('Front'),
+                  icon: Icon(Icons.crop_portrait, size: 15),
+                ),
+                ButtonSegment<bool>(
+                  value: false,
+                  label: Text('Back'),
+                  icon: Icon(Icons.flip, size: 15),
+                ),
+              ],
+              selected: {showReadingOnFront},
+              onSelectionChanged: (set) {
+                if (set.isNotEmpty) {
+                  onChanged(set.first);
+                }
+              },
+              style: ButtonStyle(
+                visualDensity: VisualDensity.compact,
+                textStyle: WidgetStateProperty.all(
+                  HakiTypography.labelSm.copyWith(fontSize: 11),
+                ),
               ),
             ),
           ],

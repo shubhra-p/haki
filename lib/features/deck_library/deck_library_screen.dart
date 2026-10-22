@@ -211,13 +211,14 @@ class _DeckLibraryScreenState extends ConsumerState<DeckLibraryScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => _CreateDeckSheet(
-        onCreate: (name, sourceLang, targetLang) async {
+        onCreate: (name, sourceLang, targetLang, showReadingOnFront) async {
           Navigator.pop(ctx);
           if (mounted) {
             await ref.read(deckDaoProvider).createDeck(
                   name: name,
                   sourceLanguage: sourceLang,
                   targetLanguage: targetLang,
+                  showReadingOnFront: showReadingOnFront,
                 );
             ref.invalidate(allDecksProvider);
           }
@@ -431,23 +432,28 @@ class _DeckCard extends StatelessWidget {
           // Header row: language tags + more menu
           Row(
             children: [
-              if (deck.languagePairLabel != null)
-                HakiPill(
-                  label: deck.languagePairLabel!,
-                  backgroundColor: HakiColors.primary.withValues(alpha: 0.08),
-                  textColor: HakiColors.primary,
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    if (deck.languagePairLabel != null)
+                      HakiPill(
+                        label: deck.languagePairLabel!,
+                        backgroundColor:
+                            HakiColors.primary.withValues(alpha: 0.08),
+                        textColor: HakiColors.primary,
+                      ),
+                    if (deck.isCompleted)
+                      const HakiPill(
+                        label: 'Completed',
+                        backgroundColor: HakiColors.emeraldTint,
+                        textColor: HakiColors.emerald,
+                        icon: Icons.check_circle,
+                      ),
+                  ],
                 ),
-              if (deck.isCompleted)
-                const Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: HakiPill(
-                    label: 'Completed',
-                    backgroundColor: HakiColors.emeraldTint,
-                    textColor: HakiColors.emerald,
-                    icon: Icons.check_circle,
-                  ),
-                ),
-              const Spacer(),
+              ),
               PopupMenuButton<String>(
                 onSelected: (value) {
                   switch (value) {
@@ -491,6 +497,8 @@ class _DeckCard extends StatelessWidget {
             style: HakiTypography.headlineSm.copyWith(
               color: HakiColors.textPrimary,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
 
@@ -590,8 +598,12 @@ class _DeckCard extends StatelessWidget {
 }
 
 class _CreateDeckSheet extends StatefulWidget {
-  final void Function(String name, String? sourceLang, String? targetLang)
-      onCreate;
+  final void Function(
+    String name,
+    String? sourceLang,
+    String? targetLang,
+    bool showReadingOnFront,
+  ) onCreate;
 
   const _CreateDeckSheet({required this.onCreate});
 
@@ -603,6 +615,7 @@ class _CreateDeckSheetState extends State<_CreateDeckSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _sourceLangController;
   late final TextEditingController _targetLangController;
+  bool _showReadingOnFront = true;
 
   @override
   void initState() {
@@ -686,6 +699,70 @@ class _CreateDeckSheetState extends State<_CreateDeckSheet> {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          // Reading placement preference
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: HakiColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: HakiColors.cardBorder),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reading Placement',
+                        style: HakiTypography.labelMd.copyWith(
+                          color: HakiColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _showReadingOnFront
+                            ? 'Pronunciation on Front (standard)'
+                            : 'Pronunciation on Back (character recognition)',
+                        style: HakiTypography.bodySm.copyWith(
+                          color: HakiColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment<bool>(
+                      value: true,
+                      label: Text('Front'),
+                      icon: Icon(Icons.crop_portrait, size: 14),
+                    ),
+                    ButtonSegment<bool>(
+                      value: false,
+                      label: Text('Back'),
+                      icon: Icon(Icons.flip, size: 14),
+                    ),
+                  ],
+                  selected: {_showReadingOnFront},
+                  onSelectionChanged: (set) {
+                    if (set.isNotEmpty) {
+                      setState(() => _showReadingOnFront = set.first);
+                    }
+                  },
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    textStyle: WidgetStateProperty.all(
+                      HakiTypography.labelSm.copyWith(fontSize: 11),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
           HakiPillButton(
             label: 'Create Deck',
@@ -699,6 +776,7 @@ class _CreateDeckSheetState extends State<_CreateDeckSheet> {
                   name,
                   source.isNotEmpty ? source.toUpperCase() : null,
                   target.isNotEmpty ? target.toUpperCase() : null,
+                  _showReadingOnFront,
                 );
               }
             },

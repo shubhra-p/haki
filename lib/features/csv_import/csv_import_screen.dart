@@ -41,6 +41,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
 
   String _selectedLanguage = 'Spanish';
   String _selectedTargetLanguage = 'English';
+  bool _showReadingOnFront = true;
   DuplicateResolution _duplicateMode = DuplicateResolution.skip;
 
   String? _loadedFileName;
@@ -96,6 +97,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
     if (deck != null && mounted) {
       setState(() {
         _deckNameController.text = deck.name;
+        _showReadingOnFront = deck.showReadingOnFront;
         final src = deck.sourceLanguage ?? 'Spanish';
         final tgt = deck.targetLanguage ?? 'English';
         if (!_availableLanguages.contains(src)) {
@@ -279,6 +281,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
               name: deckName,
               sourceLanguage: _selectedLanguage,
               targetLanguage: _selectedTargetLanguage,
+              showReadingOnFront: _showReadingOnFront,
             );
         targetDeckId = newDeck.id;
       }
@@ -604,6 +607,74 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Reading Placement Option
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: HakiColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Reading Placement',
+                                  style: HakiTypography.labelSm.copyWith(
+                                    color: HakiColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _showReadingOnFront
+                                      ? 'Front (Visible immediately)'
+                                      : 'Back (Reveal after flip)',
+                                  style: HakiTypography.bodySm.copyWith(
+                                    color: HakiColors.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SegmentedButton<bool>(
+                            segments: const [
+                              ButtonSegment<bool>(
+                                value: true,
+                                label: Text('Front'),
+                                icon: Icon(Icons.crop_portrait, size: 14),
+                              ),
+                              ButtonSegment<bool>(
+                                value: false,
+                                label: Text('Back'),
+                                icon: Icon(Icons.flip, size: 14),
+                              ),
+                            ],
+                            selected: {_showReadingOnFront},
+                            onSelectionChanged: (set) {
+                              if (set.isNotEmpty) {
+                                setState(
+                                  () => _showReadingOnFront = set.first,
+                                );
+                              }
+                            },
+                            style: ButtonStyle(
+                              visualDensity: VisualDensity.compact,
+                              textStyle: WidgetStateProperty.all(
+                                HakiTypography.labelSm.copyWith(fontSize: 11),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

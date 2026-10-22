@@ -9,6 +9,8 @@ class DeckTable extends Table {
   TextColumn get name => text().withLength(min: 1, max: 200)();
   TextColumn get sourceLanguage => text().nullable()();
   TextColumn get targetLanguage => text().nullable()();
+  BoolColumn get showReadingOnFront =>
+      boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get lastStudiedAt => dateTime().nullable()();

@@ -51,37 +51,45 @@ class InsightsScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.circle,
-                            size: 8,
-                            color: HakiColors.secondary,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'MEMORY HEALTH ENGINE',
-                            style: HakiTypography.labelSm.copyWith(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.circle,
+                              size: 8,
                               color: HakiColors.secondary,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Mastery & Insights',
-                        style: HakiTypography.headlineLgMobile.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: HakiColors.textPrimary,
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'MEMORY HEALTH ENGINE',
+                                style: HakiTypography.labelSm.copyWith(
+                                  color: HakiColors.secondary,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.8,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          'Mastery & Insights',
+                          style: HakiTypography.headlineLgMobile.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: HakiColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 12),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -207,23 +215,29 @@ class InsightsScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.local_fire_department,
-                    color: HakiColors.secondary,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '14 Day Momentum',
-                    style: HakiTypography.headlineSm.copyWith(
-                      fontSize: 17,
-                      color: HakiColors.textPrimary,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.local_fire_department,
+                      color: HakiColors.secondary,
+                      size: 22,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '14 Day Momentum',
+                        style: HakiTypography.headlineSm.copyWith(
+                          fontSize: 17,
+                          color: HakiColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -243,26 +257,26 @@ class InsightsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(7, (index) {
               final date = weekStart.add(Duration(days: index));
               final isToday = date.isAtSameMomentAs(today);
               final isFuture = date.isAfter(today);
               final studied = studyDaySet.contains(date);
 
-              return Container(
-                width: 42,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isToday
-                      ? HakiColors.primary
-                      : HakiColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(14),
-                  border: isToday
-                      ? Border.all(color: HakiColors.primary, width: 1.5)
-                      : null,
-                ),
-                child: Column(
+              return Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(right: index < 6 ? 4 : 0),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isToday
+                        ? HakiColors.primary
+                        : HakiColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(14),
+                    border: isToday
+                        ? Border.all(color: HakiColors.primary, width: 1.5)
+                        : null,
+                  ),
+                  child: Column(
                   children: [
                     Text(
                       dayNames[index],
@@ -323,9 +337,10 @@ class InsightsScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-              );
-            }),
-          ),
+              ),
+            );
+          }),
+        ),
         ],
       ),
     );
@@ -410,27 +425,33 @@ class InsightsScreen extends ConsumerWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Forgetting Curve',
-                    style: HakiTypography.headlineSm.copyWith(
-                      fontSize: 18,
-                      color: HakiColors.textPrimary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Forgetting Curve',
+                      style: HakiTypography.headlineSm.copyWith(
+                        fontSize: 18,
+                        color: HakiColors.textPrimary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Projected stability over review intervals',
-                    style: HakiTypography.bodySm.copyWith(
-                      color: HakiColors.textSecondary,
-                      fontSize: 12,
+                    const SizedBox(height: 2),
+                    Text(
+                      'Projected stability over review intervals',
+                      style: HakiTypography.bodySm.copyWith(
+                        color: HakiColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -439,6 +460,7 @@ class InsightsScreen extends ConsumerWidget {
                   borderRadius: HakiRadius.fullAll,
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
                       Icons.show_chart,
@@ -475,31 +497,41 @@ class InsightsScreen extends ConsumerWidget {
 
           // 4 Interval Status Columns
           const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _IntervalPill(
-                dayLabel: 'Day 1',
-                count: '1m',
-                status: 'LEARNING 1',
-                dotColor: Color(0xFFB45309),
+              Expanded(
+                child: _IntervalPill(
+                  dayLabel: 'Day 1',
+                  count: '1m',
+                  status: 'LEARNING 1',
+                  dotColor: Color(0xFFB45309),
+                ),
               ),
-              _IntervalPill(
-                dayLabel: 'Day 3',
-                count: '10m',
-                status: 'LEARNING 2',
-                dotColor: HakiColors.secondary,
+              SizedBox(width: 6),
+              Expanded(
+                child: _IntervalPill(
+                  dayLabel: 'Day 3',
+                  count: '10m',
+                  status: 'LEARNING 2',
+                  dotColor: HakiColors.secondary,
+                ),
               ),
-              _IntervalPill(
-                dayLabel: '1 Week',
-                count: '1d+',
-                status: 'GRADUATED',
-                dotColor: Color(0xFF6366F1),
+              SizedBox(width: 6),
+              Expanded(
+                child: _IntervalPill(
+                  dayLabel: '1 Week',
+                  count: '1d+',
+                  status: 'GRADUATED',
+                  dotColor: Color(0xFF6366F1),
+                ),
               ),
-              _IntervalPill(
-                dayLabel: '1 Month',
-                count: '21d+',
-                status: 'MASTERED',
-                dotColor: HakiColors.tertiary,
+              SizedBox(width: 6),
+              Expanded(
+                child: _IntervalPill(
+                  dayLabel: '1 Month',
+                  count: '21d+',
+                  status: 'MASTERED',
+                  dotColor: HakiColors.tertiary,
+                ),
               ),
             ],
           ),
@@ -518,23 +550,29 @@ class InsightsScreen extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  size: 18,
-                  color: HakiColors.rose,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Needs Attention',
-                  style: HakiTypography.headlineSm.copyWith(
-                    fontSize: 17,
-                    color: HakiColors.textPrimary,
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    size: 18,
+                    color: HakiColors.rose,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Needs Attention',
+                      style: HakiTypography.headlineSm.copyWith(
+                        fontSize: 17,
+                        color: HakiColors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
@@ -637,37 +675,48 @@ class _MetricCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: HakiColors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 20, color: HakiColors.primary),
+                child: Icon(icon, size: 18, color: HakiColors.primary),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: badgeBg,
-                  borderRadius: HakiRadius.fullAll,
-                ),
-                child: Text(
-                  badgeText,
-                  style: HakiTypography.labelSm.copyWith(
-                    color: badgeColor,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(width: 4),
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: HakiRadius.fullAll,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      badgeText,
+                      style: HakiTypography.labelSm.copyWith(
+                        color: badgeColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          Text(
-            value,
-            style: HakiTypography.headlineLgMobile.copyWith(
-              fontWeight: FontWeight.w800,
-              color: HakiColors.textPrimary,
-              fontSize: 24,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: HakiTypography.headlineLgMobile.copyWith(
+                fontWeight: FontWeight.w800,
+                color: HakiColors.textPrimary,
+                fontSize: 24,
+              ),
             ),
           ),
           const SizedBox(height: 2),
@@ -677,6 +726,8 @@ class _MetricCard extends StatelessWidget {
               color: HakiColors.textSecondary,
               fontSize: 12,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -700,42 +751,51 @@ class _IntervalPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       decoration: BoxDecoration(
         color: HakiColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                dayLabel,
-                style: HakiTypography.labelSm.copyWith(
-                  color: HakiColors.textSecondary,
-                  fontSize: 10,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  dayLabel,
+                  style: HakiTypography.labelSm.copyWith(
+                    color: HakiColors.textSecondary,
+                    fontSize: 10,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Icon(Icons.circle, size: 6, color: dotColor),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            count,
-            style: HakiTypography.headlineSm.copyWith(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: HakiColors.textPrimary,
+                const SizedBox(width: 3),
+                Icon(Icons.circle, size: 6, color: dotColor),
+              ],
             ),
           ),
-          Text(
-            status,
-            style: HakiTypography.labelSm.copyWith(
-              fontSize: 9,
-              color: HakiColors.textDisabled,
-              fontWeight: FontWeight.w600,
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              count,
+              style: HakiTypography.headlineSm.copyWith(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: HakiColors.textPrimary,
+              ),
+            ),
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              status,
+              style: HakiTypography.labelSm.copyWith(
+                fontSize: 9,
+                color: HakiColors.textDisabled,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -786,20 +846,26 @@ class _AttentionCardTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      word,
-                      style: HakiTypography.headlineSm.copyWith(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Text(
+                        word,
+                        style: HakiTypography.headlineSm.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (phonetic.isNotEmpty) ...[
                       const SizedBox(width: 6),
-                      Text(
-                        phonetic,
-                        style: HakiTypography.phoneticDisplay.copyWith(
-                          fontSize: 11,
-                          color: HakiColors.textSecondary,
+                      Flexible(
+                        child: Text(
+                          phonetic,
+                          style: HakiTypography.phoneticDisplay.copyWith(
+                            fontSize: 11,
+                            color: HakiColors.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -811,6 +877,8 @@ class _AttentionCardTile extends StatelessWidget {
                     color: HakiColors.textSecondary,
                     fontSize: 12,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   lastRating,
@@ -818,6 +886,8 @@ class _AttentionCardTile extends StatelessWidget {
                     color: HakiColors.rose,
                     fontSize: 10,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

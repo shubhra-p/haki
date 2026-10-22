@@ -7,6 +7,7 @@ class Deck {
   final String name;
   final String? sourceLanguage;
   final String? targetLanguage;
+  final bool showReadingOnFront;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? lastStudiedAt;
@@ -23,6 +24,7 @@ class Deck {
     required this.name,
     this.sourceLanguage,
     this.targetLanguage,
+    this.showReadingOnFront = true,
     required this.createdAt,
     required this.updatedAt,
     this.lastStudiedAt,
@@ -64,6 +66,7 @@ class Deck {
     String? name,
     String? sourceLanguage,
     String? targetLanguage,
+    bool? showReadingOnFront,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? lastStudiedAt,
@@ -83,6 +86,7 @@ class Deck {
           clearSourceLanguage ? null : (sourceLanguage ?? this.sourceLanguage),
       targetLanguage:
           clearTargetLanguage ? null : (targetLanguage ?? this.targetLanguage),
+      showReadingOnFront: showReadingOnFront ?? this.showReadingOnFront,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastStudiedAt:
@@ -104,5 +108,6 @@ class Deck {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'Deck(id: $id, name: $name, cards: $totalCards)';
+  String toString() =>
+      'Deck(id: $id, name: $name, cards: $totalCards, showReadingOnFront: $showReadingOnFront)';
 }

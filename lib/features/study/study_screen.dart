@@ -374,7 +374,9 @@ class _StudyDeckTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
                       HakiPill(
                         label: deck.sourceLanguage ?? 'General',
@@ -382,7 +384,6 @@ class _StudyDeckTile extends StatelessWidget {
                         textColor: HakiColors.primary,
                         fontSize: 10,
                       ),
-                      const SizedBox(width: 6),
                       if (due > 0)
                         HakiPill(
                           label: '$due Due',
@@ -407,6 +408,8 @@ class _StudyDeckTile extends StatelessWidget {
                   Text(
                     deck.name,
                     style: HakiTypography.headlineSm.copyWith(fontSize: 16),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -645,6 +648,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   @override
   Widget build(BuildContext context) {
     final deckAsync = ref.watch(deckByIdProvider(widget.deckId));
+    final showReadingOnFront = deckAsync.valueOrNull?.showReadingOnFront ?? true;
     final streakAsync = ref.watch(currentStreakProvider);
     final streak = streakAsync.valueOrNull ?? 0;
 
@@ -708,66 +712,127 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  // Deck pill
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: HakiColors.surfaceContainerLow,
-                      borderRadius: HakiRadius.fullAll,
-                      border: Border.all(color: HakiColors.cardBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.style,
-                          size: 14,
-                          color: HakiColors.primary,
+                  // Deck pill - Expanded + Align + Flexible text ensures long deck names never overflow
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          deckAsync.valueOrNull?.name ?? 'Deck',
-                          style: HakiTypography.labelSm.copyWith(
-                            color: HakiColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        decoration: BoxDecoration(
+                          color: HakiColors.surfaceContainerLow,
+                          borderRadius: HakiRadius.fullAll,
+                          border: Border.all(color: HakiColors.cardBorder),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.style,
+                              size: 14,
+                              color: HakiColors.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                deckAsync.valueOrNull?.name ?? 'Deck',
+                                style: HakiTypography.labelSm.copyWith(
+                                  color: HakiColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
+                  // Reading placement quick toggle
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(6),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                    icon: Icon(
+                      showReadingOnFront
+                          ? Icons.subtitles_outlined
+                          : Icons.subtitles_off_outlined,
+                      color: showReadingOnFront
+                          ? HakiColors.primary
+                          : HakiColors.secondary,
+                      size: 20,
+                    ),
+                    tooltip: showReadingOnFront
+                        ? 'Readings on Front (tap to hide on front)'
+                        : 'Readings on Back (tap to show on front)',
+                    onPressed: () async {
+                      final next = !showReadingOnFront;
+                      await ref.read(deckDaoProvider).updateDeck(
+                            id: widget.deckId,
+                            showReadingOnFront: next,
+                          );
+                      ref.invalidate(deckByIdProvider(widget.deckId));
+                      ref.invalidate(allDecksProvider);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              next
+                                  ? 'Readings placed on Card Front'
+                                  : 'Character recognition mode: Readings on Back',
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 4),
                   // Streak pill
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                     decoration: BoxDecoration(
                       color: HakiColors.secondary.withValues(alpha: 0.12),
                       borderRadius: HakiRadius.fullAll,
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
                           Icons.local_fire_department,
                           color: HakiColors.secondary,
-                          size: 16,
+                          size: 15,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 3),
                         Text(
                           '$streak',
                           style: HakiTypography.labelMd.copyWith(
                             color: HakiColors.secondary,
                             fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                   // Exit button
                   IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(6),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                     icon: const Icon(
                       Icons.close,
                       color: HakiColors.textSecondary,
+                      size: 20,
                     ),
                     onPressed: () => context.pop(),
                   ),
@@ -781,31 +846,39 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.content_copy,
-                        size: 16,
-                        color: HakiColors.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Card ${_currentIndex + 1} ',
-                        style: HakiTypography.headlineSm.copyWith(
-                          fontSize: 16,
-                          color: HakiColors.textPrimary,
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.content_copy,
+                          size: 16,
+                          color: HakiColors.primary,
                         ),
-                      ),
-                      Text(
-                        '/ ${_cards.length}',
-                        style: HakiTypography.bodySm.copyWith(
-                          color: HakiColors.textSecondary,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Card ${_currentIndex + 1} ',
+                            style: HakiTypography.headlineSm.copyWith(
+                              fontSize: 16,
+                              color: HakiColors.textPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '/ ${_cards.length}',
+                          style: HakiTypography.bodySm.copyWith(
+                            color: HakiColors.textSecondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -817,6 +890,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           borderRadius: HakiRadius.fullAll,
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
                               Icons.star,
@@ -834,7 +908,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -845,6 +919,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           borderRadius: HakiRadius.fullAll,
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
                               Icons.schedule,
@@ -930,10 +1005,17 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                                     transform: Matrix4.identity()
                                       ..rotateY(math.pi),
                                     alignment: Alignment.center,
-                                    child:
-                                        _buildCardBack(currentCard, auraColor),
+                                    child: _buildCardBack(
+                                      currentCard,
+                                      auraColor,
+                                      showReadingOnBack: !showReadingOnFront,
+                                    ),
                                   )
-                                : _buildCardFront(currentCard, auraColor),
+                                : _buildCardFront(
+                                    currentCard,
+                                    auraColor,
+                                    showReading: showReadingOnFront,
+                                  ),
                           );
                         },
                       ),
@@ -947,43 +1029,57 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
 
             // ─── Directional Feedback Indicators ────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.arrow_back,
-                        size: 14,
-                        color: HakiColors.rose,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Swipe Left: Retry',
-                        style: HakiTypography.labelSm.copyWith(
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.arrow_back,
+                          size: 14,
                           color: HakiColors.rose,
-                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Swipe Left: Retry',
+                            style: HakiTypography.labelSm.copyWith(
+                              color: HakiColors.rose,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Row(
-                    children: [
-                      Text(
-                        'Swipe Right: Mastered',
-                        style: HakiTypography.labelSm.copyWith(
-                          color: HakiColors.tertiary,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Swipe Right: Mastered',
+                            style: HakiTypography.labelSm.copyWith(
+                              color: HakiColors.tertiary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 14,
-                        color: HakiColors.tertiary,
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 14,
+                          color: HakiColors.tertiary,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1111,7 +1207,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     );
   }
 
-  Widget _buildCardFront(FlashCard card, Color? auraColor) {
+  Widget _buildCardFront(
+    FlashCard card,
+    Color? auraColor, {
+    bool showReading = true,
+  }) {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 380, maxHeight: 460),
@@ -1184,32 +1284,39 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 10),
-              // Phonetic IPA badge
-              if (card.pronunciation != null && card.pronunciation!.isNotEmpty)
+              if (showReading) ...[
+                const SizedBox(height: 10),
+                _buildReadingDetails(card),
+              ] else if ((card.pronunciation != null &&
+                      card.pronunciation!.isNotEmpty) ||
+                  (card.transliteration != null &&
+                      card.transliteration!.isNotEmpty)) ...[
+                const SizedBox(height: 12),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
                     color: HakiColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: HakiRadius.fullAll,
                   ),
-                  child: Text(
-                    card.pronunciation!,
-                    style: HakiTypography.phoneticDisplay.copyWith(
-                      color: HakiColors.textSecondary,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-              if (card.transliteration != null &&
-                  card.transliteration!.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Text(
-                  card.transliteration!,
-                  style: HakiTypography.bodySm.copyWith(
-                    color: HakiColors.textSecondary,
-                    fontStyle: FontStyle.italic,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.visibility_off_outlined,
+                        size: 13,
+                        color: HakiColors.textDisabled,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Readings on back',
+                        style: HakiTypography.labelSm.copyWith(
+                          color: HakiColors.textDisabled,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -1221,6 +1328,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
                     Icons.touch_app_outlined,
@@ -1228,11 +1336,14 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                     color: HakiColors.primary,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'Tap card to flip & reveal ↺',
-                    style: HakiTypography.labelMd.copyWith(
-                      color: HakiColors.primary,
-                      fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Text(
+                      'Tap card to flip & reveal ↺',
+                      style: HakiTypography.labelMd.copyWith(
+                        color: HakiColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -1244,6 +1355,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                   color: HakiColors.textDisabled,
                   fontSize: 12,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -1252,7 +1365,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     );
   }
 
-  Widget _buildCardBack(FlashCard card, Color? auraColor) {
+  Widget _buildCardBack(
+    FlashCard card,
+    Color? auraColor, {
+    bool showReadingOnBack = false,
+  }) {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 380, maxHeight: 460),
@@ -1301,57 +1418,35 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
           ),
           Column(
             children: [
+              // Word / Character
               Text(
                 card.word,
                 style: HakiTypography.headlineSm.copyWith(
                   color: HakiColors.textSecondary,
-                  fontSize: 18,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
+              // Meaning directly below character/word
               Text(
                 card.meaning,
                 style: HakiTypography.headlineMd.copyWith(
                   color: HakiColors.textPrimary,
                   fontWeight: FontWeight.bold,
-                  fontSize: 26,
+                  fontSize: 28,
                 ),
                 textAlign: TextAlign.center,
               ),
-              if (card.transliteration != null &&
-                  card.transliteration!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: HakiColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    card.transliteration!,
-                    style: HakiTypography.bodySm.copyWith(
-                      color: HakiColors.textSecondary,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ],
-              if (card.pronunciation != null &&
-                  card.pronunciation!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  card.pronunciation!,
-                  style: HakiTypography.phoneticDisplay.copyWith(
-                    color: HakiColors.textDisabled,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
+              const SizedBox(height: 14),
+              // Pronunciation & Reading below meaning
+              _buildReadingDetails(card),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
                 Icons.flip_to_front,
@@ -1359,17 +1454,66 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                 color: HakiColors.primary,
               ),
               const SizedBox(width: 6),
-              Text(
-                'Tap card to flip back ↻',
-                style: HakiTypography.labelMd.copyWith(
-                  color: HakiColors.primary,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  'Tap card to flip back ↻',
+                  style: HakiTypography.labelMd.copyWith(
+                    color: HakiColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildReadingDetails(FlashCard card) {
+    final hasPronunciation =
+        card.pronunciation != null && card.pronunciation!.isNotEmpty;
+    final hasTransliteration =
+        card.transliteration != null && card.transliteration!.isNotEmpty;
+
+    if (!hasPronunciation && !hasTransliteration) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Phonetic IPA badge
+        if (hasPronunciation)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: HakiColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              card.pronunciation!,
+              style: HakiTypography.phoneticDisplay.copyWith(
+                color: HakiColors.textSecondary,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        if (hasTransliteration) ...[
+          if (hasPronunciation) const SizedBox(height: 6),
+          Text(
+            card.transliteration!,
+            style: HakiTypography.bodySm.copyWith(
+              color: HakiColors.textSecondary,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ],
     );
   }
 

@@ -64,6 +64,7 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
     required String name,
     String? sourceLanguage,
     String? targetLanguage,
+    bool showReadingOnFront = true,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
@@ -74,6 +75,7 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
         name: name,
         sourceLanguage: Value(sourceLanguage),
         targetLanguage: Value(targetLanguage),
+        showReadingOnFront: Value(showReadingOnFront),
         createdAt: Value(now),
         updatedAt: Value(now),
       ),
@@ -84,6 +86,7 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
       name: name,
       sourceLanguage: sourceLanguage,
       targetLanguage: targetLanguage,
+      showReadingOnFront: showReadingOnFront,
       createdAt: now,
       updatedAt: now,
     );
@@ -95,6 +98,7 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
     String? name,
     String? sourceLanguage,
     String? targetLanguage,
+    bool? showReadingOnFront,
     bool clearSourceLanguage = false,
     bool clearTargetLanguage = false,
   }) async {
@@ -110,6 +114,9 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
           : (targetLanguage != null
               ? Value(targetLanguage)
               : const Value.absent()),
+      showReadingOnFront: showReadingOnFront != null
+          ? Value(showReadingOnFront)
+          : const Value.absent(),
       updatedAt: Value(DateTime.now()),
     );
 
@@ -216,6 +223,7 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
       name: data.name,
       sourceLanguage: data.sourceLanguage,
       targetLanguage: data.targetLanguage,
+      showReadingOnFront: data.showReadingOnFront,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       lastStudiedAt: data.lastStudiedAt,
