@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -110,9 +111,11 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
   }
 
   void _loadSampleData() {
-    final sample = CsvParser.generateSampleCsv();
+    final sample = CsvParser.generateSampleCsv(_selectedLanguage);
     _csvTextController.text = sample;
-    _loadedFileName = 'spanish_b2_sample.csv';
+    _loadedFileName = _selectedLanguage.toLowerCase() == 'japanese'
+        ? 'japanese_jlpt_n4_sample.csv'
+        : 'sample_vocabulary.csv';
     _parseCsvContent(sample);
   }
 
@@ -127,14 +130,28 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
         String content = '';
-        if (file.bytes != null) {
-          content = String.fromCharCodes(file.bytes!);
+        if (file.bytes != null && file.bytes!.isNotEmpty) {
+          content = CsvParser.decodeBytes(file.bytes!);
+        } else if (file.path != null && file.path!.isNotEmpty) {
+          final ioFile = File(file.path!);
+          if (await ioFile.exists()) {
+            final bytes = await ioFile.readAsBytes();
+            content = CsvParser.decodeBytes(bytes);
+          }
         }
 
         if (content.isNotEmpty) {
+          final detectedLang = _detectLanguage(content, file.name);
+
           setState(() {
             _loadedFileName = file.name;
             _csvTextController.text = content;
+            if (detectedLang != null) {
+              if (!_availableLanguages.contains(detectedLang)) {
+                _availableLanguages.add(detectedLang);
+              }
+              _selectedLanguage = detectedLang;
+            }
             if (widget.existingDeckId == null &&
                 _deckNameController.text.isEmpty) {
               _deckNameController.text =
@@ -159,6 +176,30 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
     }
   }
 
+  String? _detectLanguage(String content, String fileName) {
+    final lower = fileName.toLowerCase();
+    if (lower.contains('japanese') ||
+        lower.contains('jlpt') ||
+        RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]').hasMatch(content)) {
+      return 'Japanese';
+    }
+    if (lower.contains('korean') ||
+        RegExp(r'[\uAC00-\uD7AF]').hasMatch(content)) {
+      return 'Korean';
+    }
+    if (lower.contains('chinese') || lower.contains('mandarin')) {
+      return 'Mandarin';
+    }
+    if (lower.contains('russian') ||
+        RegExp(r'[\u0400-\u04FF]').hasMatch(content)) {
+      return 'Russian';
+    }
+    if (lower.contains('spanish')) {
+      return 'Spanish';
+    }
+    return null;
+  }
+
   void _parseCsvContent(String content) {
     if (content.trim().isEmpty) return;
 
@@ -168,12 +209,6 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
       final result = _parser.parse(
         content,
         hasHeader: true,
-        customMapping: ColumnMapping(
-          wordIndex: _wordColumnIndex,
-          meaningIndex: _meaningColumnIndex,
-          transliterationIndex: _translitColumnIndex,
-          pronunciationIndex: _pronunciationColumnIndex,
-        ),
       );
 
       setState(() {

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:csv/csv.dart';
 import '../../models/enums.dart';
 
@@ -429,8 +430,58 @@ class CsvParser {
         .any((alias) => normalized == alias.replaceAll(RegExp(r'[_\s-]+'), ''));
   }
 
-  /// Generate a sample CSV string
-  static String generateSampleCsv() {
+  /// Decodes raw file bytes into a clean Unicode string.
+  ///
+  /// Correctly handles:
+  /// - Multi-byte UTF-8 sequences (Japanese, Chinese, Arabic, Cyrillic, Hindi, IPA phonetics, etc.)
+  /// - UTF-8 with Byte Order Mark (BOM `\uFEFF` / `0xEF, 0xBB, 0xBF`)
+  /// - Graceful fallback to Latin-1 if file is not UTF-8 encoded
+  static String decodeBytes(List<int> bytes) {
+    if (bytes.isEmpty) return '';
+
+    List<int> effectiveBytes = bytes;
+    // Strip UTF-8 BOM if present at byte level (0xEF, 0xBB, 0xBF)
+    if (bytes.length >= 3 &&
+        bytes[0] == 0xEF &&
+        bytes[1] == 0xBB &&
+        bytes[2] == 0xBF) {
+      effectiveBytes = bytes.sublist(3);
+    }
+
+    try {
+      String decoded = utf8.decode(effectiveBytes, allowMalformed: false);
+      if (decoded.startsWith('\uFEFF')) {
+        decoded = decoded.substring(1);
+      }
+      return decoded;
+    } catch (_) {
+      try {
+        String decoded = utf8.decode(effectiveBytes, allowMalformed: true);
+        if (decoded.startsWith('\uFEFF')) {
+          decoded = decoded.substring(1);
+        }
+        return decoded;
+      } catch (_) {
+        return latin1.decode(effectiveBytes);
+      }
+    }
+  }
+
+  /// Generate a sample CSV string for testing or onboarding
+  static String generateSampleCsv([String? language]) {
+    if (language?.toLowerCase() == 'japanese') {
+      return '''term,definition,reading,phonetics
+約束,A promise or appointment,やくそく (yakusoku),[ja.kɯ̟ᵝ.so̞.kɯ̟ᵝ]
+木漏れ日,Sunlight filtering through trees,こもれび (komorebi),[ko̞.mo̞.ɾe̞.bi]
+一期一会,Once-in-a-lifetime encounter,いちごいちえ (ichigo ichie),[i.t͡ɕi.ɡo̞ i.t͡ɕi.e̞]
+風情,Atmosphere / seasonal charm,ふぜい (fuzei),[ɸɯ̟ᵝ.ze̞ː]
+忘れ物,Forgotten item / lost property,わすれもの (wasuremono),[wa.sɯ̟ᵝ.ɾe̞.mo̞.no̞]
+思いやり,Thoughtfulness / empathy / compassion,おもいやり (omoiyari),[o̞.mo̞.i.ja.ɾi]
+青空,Clear blue open sky,あおぞら (aozora),[a.o̞.zo̞.ɾa]
+時間,Time / hours,じかん (jikan),[d͡ʑi.kã̠ɴ]
+水,Water / cold water,みず (mizu),[mʲi.zɨᵝ]
+''';
+    }
     return '''word,meaning,transliteration,pronunciation
 sobremesa,after-meal conversation,so-bre-me-sa,[so.βɾe.ˈme.sa]
 madrugada,early dawn / wee hours,ma-dru-ga-da,[ma.ðɾu.ˈɣa.ða]

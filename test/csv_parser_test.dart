@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haki/models/enums.dart';
 import 'package:haki/services/csv_parser.dart';
@@ -97,6 +98,36 @@ estrenar,to use for the first time''';
       expect(reparse.rows.length, equals(1));
       expect(reparse.rows[0].word, equals('café, solo'));
       expect(reparse.rows[0].meaning, equals('espresso, "black"'));
+    });
+
+    test('decodeBytes correctly decodes UTF-8 multi-byte Japanese and IPA symbols', () {
+      final rawUtf8 = utf8.encode('約束,A promise,やくそく,[ja.kɯ̟ᵝ.so̞.kɯ̟ᵝ]');
+      final decoded = CsvParser.decodeBytes(rawUtf8);
+      expect(decoded, equals('約束,A promise,やくそく,[ja.kɯ̟ᵝ.so̞.kɯ̟ᵝ]'));
+    });
+
+    test('decodeBytes strips UTF-8 Byte Order Mark (BOM)', () {
+      final bomBytes = [0xEF, 0xBB, 0xBF, ...utf8.encode('word,meaning\n木漏れ日,sunlight')];
+      final decoded = CsvParser.decodeBytes(bomBytes);
+      expect(decoded.startsWith('word,meaning'), isTrue);
+      expect(decoded, contains('木漏れ日'));
+    });
+
+    test('decodeBytes decodes other non-Latin scripts accurately', () {
+      const scripts = '你好,안녕하세요,Привет,مرحبا,नमस्ते';
+      final decoded = CsvParser.decodeBytes(utf8.encode(scripts));
+      expect(decoded, equals(scripts));
+    });
+
+    test('generates Japanese sample and parses Kanji/Hiragana correctly', () {
+      final sample = CsvParser.generateSampleCsv('Japanese');
+      final result = parser.parse(sample, hasHeader: true);
+
+      expect(result.validRows.length, greaterThanOrEqualTo(5));
+      expect(result.validRows[0].word, equals('約束'));
+      expect(result.validRows[0].meaning, equals('A promise or appointment'));
+      expect(result.validRows[0].transliteration, equals('やくそく (yakusoku)'));
+      expect(result.validRows[0].pronunciation, equals('[ja.kɯ̟ᵝ.so̞.kɯ̟ᵝ]'));
     });
   });
 }

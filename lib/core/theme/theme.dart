@@ -5,7 +5,7 @@ import 'colors.dart';
 import 'typography.dart';
 
 /// Builds the complete Haki MaterialApp theme.
-///
+
 /// Consolidates DESIGN.md tokens into a single coherent ThemeData
 /// so that no scattered color literals appear in feature code.
 class HakiTheme {
@@ -52,6 +52,25 @@ class HakiTheme {
 
       // Scaffold
       scaffoldBackgroundColor: HakiColors.surface,
+
+      // Text theme with full international font fallbacks
+      textTheme: TextTheme(
+        displayLarge: HakiTypography.headlineXl,
+        displayMedium: HakiTypography.headlineLg,
+        displaySmall: HakiTypography.headlineMd,
+        headlineLarge: HakiTypography.headlineLg,
+        headlineMedium: HakiTypography.headlineMd,
+        headlineSmall: HakiTypography.headlineSm,
+        titleLarge: HakiTypography.headlineSm,
+        titleMedium: HakiTypography.bodyLg,
+        titleSmall: HakiTypography.bodyMd,
+        bodyLarge: HakiTypography.bodyLg,
+        bodyMedium: HakiTypography.bodyMd,
+        bodySmall: HakiTypography.bodySm,
+        labelLarge: HakiTypography.labelLg,
+        labelMedium: HakiTypography.labelMd,
+        labelSmall: HakiTypography.labelSm,
+      ),
 
       // App Bar
       appBarTheme: AppBarTheme(

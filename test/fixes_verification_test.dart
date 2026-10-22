@@ -172,5 +172,45 @@ void main() {
         await tester.pumpWidget(const SizedBox());
       },
     );
+
+    testWidgets(
+      'Issue 4: Japanese CSV input in CsvImportScreen parses Kanji/Kana cleanly without mojibake',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(
+              home: CsvImportScreen(),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Switch to Japanese sample
+        final langDropdown = find.text('Spanish');
+        expect(langDropdown, findsOneWidget);
+        await tester.tap(langDropdown);
+        await tester.pumpAndSettle();
+
+        final japaneseItem = find.text('Japanese').last;
+        await tester.tap(japaneseItem);
+        await tester.pumpAndSettle();
+
+        // Tap Try Sample
+        final trySampleBtn = find.text('Try Sample');
+        expect(trySampleBtn, findsOneWidget);
+        await tester.tap(trySampleBtn);
+        await tester.pumpAndSettle();
+
+        // Verify Japanese text rendered in preview
+        expect(find.text('約束'), findsOneWidget);
+        expect(find.text('A promise or appointment'), findsOneWidget);
+        expect(find.text('[ja.kɯ̟ᵝ.so̞.kɯ̟ᵝ]'), findsOneWidget);
+
+        // Verify NO mojibake characters exist in the widget tree
+        expect(find.textContaining('ç´æ'), findsNothing);
+        expect(find.textContaining('ã‚'), findsNothing);
+      },
+    );
   });
 }
