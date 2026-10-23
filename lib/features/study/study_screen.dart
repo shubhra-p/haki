@@ -499,6 +499,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   final List<ReviewRating> _sessionRatings = [];
   DateTime _cardStartTime = DateTime.now();
 
+  String? _currentSessionId;
+  bool _isSessionFinalized = false;
   bool _isSubmitting = false;
 
   @override
@@ -530,10 +532,62 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     });
   }
 
+  Future<void> _finalizeSession() async {
+    if (_isSessionFinalized) return;
+    _isSessionFinalized = true;
+    _sessionTimer?.cancel();
+    if (_currentSessionId != null) {
+      final totalCount = _sessionRatings.length;
+      final correctCount =
+          _sessionRatings.where((r) => r != ReviewRating.again).length;
+      final incorrectCount = totalCount - correctCount;
+      try {
+        await ref.read(reviewDaoProvider).endSession(
+              sessionId: _currentSessionId!,
+              cardsStudied: totalCount,
+              correctCount: correctCount,
+              incorrectCount: incorrectCount,
+            );
+        await ref.read(deckDaoProvider).updateLastStudied(widget.deckId);
+      } catch (_) {}
+    }
+    _invalidateAllStats();
+  }
+
+  void _invalidateAllStats() {
+    ref.invalidate(allDecksProvider);
+    ref.invalidate(deckByIdProvider(widget.deckId));
+    ref.invalidate(totalDueCardsProvider);
+    ref.invalidate(dueCardsForDeckProvider(widget.deckId));
+    ref.invalidate(totalReviewCountProvider);
+    ref.invalidate(totalStudyTimeProvider);
+    ref.invalidate(studyDaysProvider);
+    ref.invalidate(currentStreakProvider);
+    ref.invalidate(longestStreakProvider);
+    ref.invalidate(totalMasteredProvider);
+    ref.invalidate(retentionRateProvider);
+    ref.invalidate(needsAttentionCardsProvider);
+  }
+
   @override
   void dispose() {
     _sessionTimer?.cancel();
     _flipController.dispose();
+    if (!_isSessionFinalized && _currentSessionId != null) {
+      try {
+        final totalCount = _sessionRatings.length;
+        final correctCount =
+            _sessionRatings.where((r) => r != ReviewRating.again).length;
+        ref.read(reviewDaoProvider).endSession(
+              sessionId: _currentSessionId!,
+              cardsStudied: totalCount,
+              correctCount: correctCount,
+              incorrectCount: totalCount - correctCount,
+            );
+        ref.read(deckDaoProvider).updateLastStudied(widget.deckId);
+        _invalidateAllStats();
+      } catch (_) {}
+    }
     super.dispose();
   }
 
@@ -555,6 +609,16 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
         _cardStartTime = DateTime.now();
       });
     }
+
+    if (_currentSessionId == null && cardsToStudy.isNotEmpty) {
+      try {
+        final session =
+            await ref.read(reviewDaoProvider).startSession(widget.deckId);
+        _currentSessionId = session.id;
+        _isSessionFinalized = false;
+        await ref.read(deckDaoProvider).updateLastStudied(widget.deckId);
+      } catch (_) {}
+    }
   }
 
   void _flipCard() {
@@ -567,7 +631,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     }
   }
 
-  Future<void> _submitRating(ReviewRating rating) async {
+  Future<void> _submitRating(ReviewRating rating, {bool isMastered = false}) async {
     if (_isSubmitting || _cards.isEmpty || _currentIndex >= _cards.length) {
       return;
     }
@@ -580,13 +644,25 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       final responseTimeMs =
           DateTime.now().difference(_cardStartTime).inMilliseconds;
 
+      final finalStatus =
+          isMastered ? ReviewStatus.mastered : scheduleResult.status;
+      final finalInterval = isMastered
+          ? math.max(scheduleResult.intervalDays, 21)
+          : scheduleResult.intervalDays;
+      final finalDueDate = isMastered
+          ? DateTime.now().add(Duration(days: finalInterval))
+          : scheduleResult.dueDate;
+      final finalEaseFactor = isMastered
+          ? math.max(scheduleResult.easeFactor, 2.5)
+          : scheduleResult.easeFactor;
+
       // Persist rating & review event
       await ref.read(cardDaoProvider).updateCardReview(
             id: card.id,
-            status: scheduleResult.status,
-            dueDate: scheduleResult.dueDate,
-            intervalDays: scheduleResult.intervalDays,
-            easeFactor: scheduleResult.easeFactor,
+            status: finalStatus,
+            dueDate: finalDueDate,
+            intervalDays: finalInterval,
+            easeFactor: finalEaseFactor,
             reviewCount: card.reviewCount + 1,
             correctCount:
                 card.correctCount + (rating != ReviewRating.again ? 1 : 0),
@@ -597,11 +673,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       await ref.read(reviewDaoProvider).createReviewEvent(
             cardId: card.id,
             deckId: card.deckId,
-            rating: rating,
+            rating: isMastered ? ReviewRating.easy : rating,
             previousIntervalDays: card.intervalDays,
-            newIntervalDays: scheduleResult.intervalDays,
+            newIntervalDays: finalInterval,
             previousEaseFactor: card.easeFactor,
-            newEaseFactor: scheduleResult.easeFactor,
+            newEaseFactor: finalEaseFactor,
             responseTimeMs: responseTimeMs,
           );
 
@@ -612,11 +688,30 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
         HapticFeedback.selectionClick();
       }
 
+      // Auto-save session progress so cutting session in between preserves stats
+      final updatedRatings = [..._sessionRatings, rating];
+      final totalStudied = updatedRatings.length;
+      final correctCount =
+          updatedRatings.where((r) => r != ReviewRating.again).length;
+      final incorrectCount = totalStudied - correctCount;
+
+      if (_currentSessionId != null) {
+        try {
+          await ref.read(reviewDaoProvider).endSession(
+                sessionId: _currentSessionId!,
+                cardsStudied: totalStudied,
+                correctCount: correctCount,
+                incorrectCount: incorrectCount,
+              );
+          await ref.read(deckDaoProvider).updateLastStudied(widget.deckId);
+        } catch (_) {}
+      }
+
       // Update state
       if (mounted) {
         setState(() {
           _sessionRatings.add(rating);
-          _xpEarned += rating == ReviewRating.again ? 5 : 15;
+          _xpEarned += rating == ReviewRating.again ? 5 : (isMastered ? 25 : 15);
 
           if (_currentIndex + 1 < _cards.length) {
             _currentIndex++;
@@ -627,6 +722,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
             _dragAngle = 0.0;
           } else {
             _isCompleted = true;
+            _finalizeSession();
           }
         });
       }
@@ -645,8 +741,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   void _onPanEnd(DragEndDetails details) {
     const threshold = 120.0;
     if (_dragOffset.dx > threshold) {
-      // Swiped right -> Mastered / Good
-      _submitRating(ReviewRating.good);
+      // Swiped right -> Mastered
+      _submitRating(ReviewRating.easy, isMastered: true);
     } else if (_dragOffset.dx < -threshold) {
       // Swiped left -> Retry / Again
       _submitRating(ReviewRating.again);
@@ -672,20 +768,16 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     final showReadingOnFront = deckAsync.valueOrNull?.showReadingOnFront ?? true;
     final streakAsync = ref.watch(currentStreakProvider);
     final streak = streakAsync.valueOrNull ?? 0;
-
+    final Widget content;
     if (_isLoading) {
-      return Scaffold(
+      content = Scaffold(
         backgroundColor: HakiColors.surface,
         body: const Center(child: CircularProgressIndicator()),
       );
-    }
-
-    if (_isCompleted) {
-      return _buildCompletionView(deckAsync.valueOrNull?.name ?? 'Deck');
-    }
-
-    if (_cards.isEmpty) {
-      return Scaffold(
+    } else if (_isCompleted) {
+      content = _buildCompletionView(deckAsync.valueOrNull?.name ?? 'Deck');
+    } else if (_cards.isEmpty) {
+      content = Scaffold(
         backgroundColor: HakiColors.surface,
         appBar: AppBar(title: const Text('Study')),
         body: Center(
@@ -701,165 +793,176 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
               Text('No cards to review!', style: HakiTypography.headlineMd),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => context.pop(),
+                onPressed: () async {
+                  final router = GoRouter.of(context);
+                  await _finalizeSession();
+                  if (mounted) {
+                    router.pop();
+                  }
+                },
                 child: const Text('Back to Decks'),
               ),
             ],
           ),
         ),
       );
-    }
+    } else {
+      final currentCard = _cards[_currentIndex];
+      final progress = (_currentIndex + 1) / _cards.length;
 
-    final currentCard = _cards[_currentIndex];
-    final progress = (_currentIndex + 1) / _cards.length;
+      // Swiping aura colors
+      Color? auraColor;
+      if (_dragOffset.dx > 40) {
+        auraColor = HakiColors.tertiary
+            .withValues(alpha: math.min(1.0, _dragOffset.dx / 200));
+      } else if (_dragOffset.dx < -40) {
+        auraColor = HakiColors.rose
+            .withValues(alpha: math.min(1.0, -_dragOffset.dx / 200));
+      }
 
-    // Swiping aura colors
-    Color? auraColor;
-    if (_dragOffset.dx > 40) {
-      auraColor = HakiColors.tertiary
-          .withValues(alpha: math.min(1.0, _dragOffset.dx / 200));
-    } else if (_dragOffset.dx < -40) {
-      auraColor = HakiColors.rose
-          .withValues(alpha: math.min(1.0, -_dragOffset.dx / 200));
-    }
-
-    return Scaffold(
-      backgroundColor: HakiColors.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ─── Header Top Bar ─────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  // Deck pill - Expanded + Align + Flexible text ensures long deck names never overflow
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HakiColors.surfaceContainerLow,
-                          borderRadius: HakiRadius.fullAll,
-                          border: Border.all(color: HakiColors.cardBorder),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.style,
-                              size: 14,
-                              color: HakiColors.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                deckAsync.valueOrNull?.name ?? 'Deck',
-                                style: HakiTypography.labelSm.copyWith(
-                                  color: HakiColors.textPrimary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+      content = Scaffold(
+        backgroundColor: HakiColors.surface,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ─── Header Top Bar ─────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    // Deck pill - Expanded + Align + Flexible text ensures long deck names never overflow
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: HakiColors.surfaceContainerLow,
+                            borderRadius: HakiRadius.fullAll,
+                            border: Border.all(color: HakiColors.cardBorder),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.style,
+                                size: 14,
+                                color: HakiColors.primary,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  deckAsync.valueOrNull?.name ?? 'Deck',
+                                  style: HakiTypography.labelSm.copyWith(
+                                    color: HakiColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Reading placement quick toggle
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.all(6),
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                    icon: Icon(
-                      showReadingOnFront
-                          ? Icons.subtitles_outlined
-                          : Icons.subtitles_off_outlined,
-                      color: showReadingOnFront
-                          ? HakiColors.primary
-                          : HakiColors.secondary,
-                      size: 20,
-                    ),
-                    tooltip: showReadingOnFront
-                        ? 'Readings on Front (tap to hide on front)'
-                        : 'Readings on Back (tap to show on front)',
-                    onPressed: () async {
-                      final next = !showReadingOnFront;
-                      await ref.read(deckDaoProvider).updateDeck(
-                            id: widget.deckId,
-                            showReadingOnFront: next,
-                          );
-                      ref.invalidate(deckByIdProvider(widget.deckId));
-                      ref.invalidate(allDecksProvider);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              next
-                                  ? 'Readings placed on Card Front'
-                                  : 'Character recognition mode: Readings on Back',
+                    const SizedBox(width: 8),
+                    // Reading placement quick toggle
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.all(6),
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                      icon: Icon(
+                        showReadingOnFront
+                            ? Icons.subtitles_outlined
+                            : Icons.subtitles_off_outlined,
+                        color: showReadingOnFront
+                            ? HakiColors.primary
+                            : HakiColors.secondary,
+                        size: 20,
+                      ),
+                      tooltip: showReadingOnFront
+                          ? 'Readings on Front (tap to hide on front)'
+                          : 'Readings on Back (tap to show on front)',
+                      onPressed: () async {
+                        final next = !showReadingOnFront;
+                        await ref.read(deckDaoProvider).updateDeck(
+                              id: widget.deckId,
+                              showReadingOnFront: next,
+                            );
+                        ref.invalidate(deckByIdProvider(widget.deckId));
+                        ref.invalidate(allDecksProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                next
+                                    ? 'Readings placed on Card Front'
+                                    : 'Character recognition mode: Readings on Back',
+                              ),
+                              duration: const Duration(seconds: 2),
                             ),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 4),
-                  // Streak pill
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: HakiColors.secondary.withValues(alpha: 0.12),
-                      borderRadius: HakiRadius.fullAll,
+                          );
+                        }
+                      },
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.local_fire_department,
-                          color: HakiColors.secondary,
-                          size: 15,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          '$streak',
-                          style: HakiTypography.labelMd.copyWith(
+                    const SizedBox(width: 4),
+                    // Streak pill
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: HakiColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: HakiRadius.fullAll,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.local_fire_department,
                             color: HakiColors.secondary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            size: 15,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 3),
+                          Text(
+                            '$streak',
+                            style: HakiTypography.labelMd.copyWith(
+                              color: HakiColors.secondary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  // Exit button
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.all(6),
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                    icon: Icon(
-                      Icons.close,
-                      color: HakiColors.textSecondary,
-                      size: 20,
+                    const SizedBox(width: 4),
+                    // Exit button
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.all(6),
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                      icon: Icon(
+                        Icons.close,
+                        color: HakiColors.textSecondary,
+                        size: 20,
+                      ),
+                      onPressed: () async {
+                        final router = GoRouter.of(context);
+                        await _finalizeSession();
+                        if (mounted) {
+                          router.pop();
+                        }
+                      },
                     ),
-                    onPressed: () => context.pop(),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
             // ─── Progress & Stats Subheader ─────────────────────
             Padding(
@@ -1174,6 +1277,15 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
           ],
         ),
       ),
+    );
+    }
+
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        await _finalizeSession();
+      },
+      child: content,
     );
   }
 
@@ -1625,7 +1737,13 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                 HakiButton(
                   label: 'Back to Deck Library',
                   icon: Icons.arrow_back,
-                  onPressed: () => context.go('/decks'),
+                  onPressed: () async {
+                    final router = GoRouter.of(context);
+                    await _finalizeSession();
+                    if (mounted) {
+                      router.go('/decks');
+                    }
+                  },
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(
@@ -1634,7 +1752,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       _isCompleted = false;
                       _currentIndex = 0;
                       _isBackVisible = false;
+                      _currentSessionId = null;
+                      _isSessionFinalized = false;
                       _sessionRatings.clear();
+                      _secondsElapsed = 0;
                       _loadCards();
                     });
                   },

@@ -28,16 +28,15 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
     return result;
   }
 
-  /// Watch all decks with stats (reactive stream)
+  /// Watch all decks with stats (reactive stream watching both decks and cards)
   Stream<List<domain.Deck>> watchAllDecks() {
-    return select(deckTable).watch().asyncMap((decks) async {
-      final result = <domain.Deck>[];
-      for (final deck in decks) {
-        final stats = await _getDeckStats(deck.id);
-        result.add(_toDomain(deck, stats));
-      }
-      return result;
-    });
+    return db
+        .customSelect(
+          'SELECT 1',
+          readsFrom: {deckTable, cardTable},
+        )
+        .watch()
+        .asyncMap((_) => getAllDecks());
   }
 
   /// Get a single deck by ID with stats
@@ -49,14 +48,15 @@ class DeckDao extends DatabaseAccessor<HakiDatabase> with _$DeckDaoMixin {
     return _toDomain(deck, stats);
   }
 
-  /// Watch a single deck by ID
+  /// Watch a single deck by ID (reactive stream watching both decks and cards)
   Stream<domain.Deck?> watchDeckById(String id) {
-    final query = select(deckTable)..where((d) => d.id.equals(id));
-    return query.watchSingleOrNull().asyncMap((deck) async {
-      if (deck == null) return null;
-      final stats = await _getDeckStats(id);
-      return _toDomain(deck, stats);
-    });
+    return db
+        .customSelect(
+          'SELECT 1',
+          readsFrom: {deckTable, cardTable},
+        )
+        .watch()
+        .asyncMap((_) => getDeckById(id));
   }
 
   /// Create a new deck

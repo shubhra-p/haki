@@ -8,6 +8,7 @@ import '../../core/theme/spacing.dart';
 import '../../core/theme/elevation.dart';
 import '../../core/providers/providers.dart';
 import '../../models/models.dart';
+import '../../services/analytics_calculator.dart';
 import '../../shared/widgets.dart';
 
 /// Mastery & Insights Screen — genuine retention analytics, momentum streak,
@@ -355,9 +356,8 @@ class InsightsScreen extends ConsumerWidget {
     required int masteredWords,
     required int totalStudySeconds,
   }) {
-    final hours = totalStudySeconds ~/ 3600;
-    final minutes = (totalStudySeconds % 3600) ~/ 60;
-    final timeStr = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+    final timeStr =
+        const AnalyticsCalculator().formatStudyTime(totalStudySeconds);
 
     return LayoutBuilder(
       builder: (context, constraints) {

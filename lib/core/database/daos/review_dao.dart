@@ -102,6 +102,11 @@ class ReviewDao extends DatabaseAccessor<HakiDatabase> with _$ReviewDaoMixin {
     return result.read(count) ?? 0;
   }
 
+  /// Watch total review count (reactive)
+  Stream<int> watchTotalReviewCount() {
+    return select(reviewEventTable).watch().map((rows) => rows.length);
+  }
+
   /// Get recent review events across all decks
   Future<List<domain.ReviewEvent>> getAllReviews({int limit = 500}) async {
     final rows = await (select(reviewEventTable)
@@ -109,6 +114,15 @@ class ReviewDao extends DatabaseAccessor<HakiDatabase> with _$ReviewDaoMixin {
           ..limit(limit))
         .get();
     return rows.map(_reviewToDomain).toList();
+  }
+
+  /// Watch recent review events across all decks (reactive)
+  Stream<List<domain.ReviewEvent>> watchAllReviews({int limit = 500}) {
+    return (select(reviewEventTable)
+          ..orderBy([(r) => OrderingTerm.desc(r.reviewedAt)])
+          ..limit(limit))
+        .watch()
+        .map((rows) => rows.map(_reviewToDomain).toList());
   }
 
   /// Get reviews for today
@@ -196,19 +210,44 @@ class ReviewDao extends DatabaseAccessor<HakiDatabase> with _$ReviewDaoMixin {
   /// Get total study time in seconds
   Future<int> getTotalStudyTimeSeconds() async {
     final sessions = await getAllSessions();
-    int total = 0;
+    int sessionSeconds = 0;
     for (final session in sessions) {
       if (session.endedAt != null) {
-        total += session.endedAt!.difference(session.startedAt).inSeconds;
+        sessionSeconds +=
+            session.endedAt!.difference(session.startedAt).inSeconds;
       }
     }
-    return total;
+
+    // Also calculate accumulated response time from individual review events
+    final reviews = await select(reviewEventTable).get();
+    int reviewMs = 0;
+    for (final r in reviews) {
+      reviewMs += r.responseTimeMs;
+    }
+    final reviewSeconds = (reviewMs / 1000).round();
+
+    // Use whichever is larger to ensure study time registers even if a session
+    // was cut or before sessions were tracked.
+    return sessionSeconds > reviewSeconds ? sessionSeconds : reviewSeconds;
+  }
+
+  /// Watch total study time in seconds (reactive)
+  Stream<int> watchTotalStudyTimeSeconds() {
+    return db
+        .customSelect(
+          'SELECT 1',
+          readsFrom: {studySessionTable, reviewEventTable},
+        )
+        .watch()
+        .asyncMap((_) => getTotalStudyTimeSeconds());
   }
 
   /// Get study days for streak calculation
   Future<List<DateTime>> getStudyDays() async {
     final sessions = await getAllSessions();
+    final reviews = await select(reviewEventTable).get();
     final days = <DateTime>{};
+
     for (final session in sessions) {
       days.add(
         DateTime(
@@ -218,8 +257,30 @@ class ReviewDao extends DatabaseAccessor<HakiDatabase> with _$ReviewDaoMixin {
         ),
       );
     }
+
+    for (final review in reviews) {
+      days.add(
+        DateTime(
+          review.reviewedAt.year,
+          review.reviewedAt.month,
+          review.reviewedAt.day,
+        ),
+      );
+    }
+
     final sorted = days.toList()..sort();
     return sorted;
+  }
+
+  /// Watch study days for streak calculation (reactive)
+  Stream<List<DateTime>> watchStudyDays() {
+    return db
+        .customSelect(
+          'SELECT 1',
+          readsFrom: {studySessionTable, reviewEventTable},
+        )
+        .watch()
+        .asyncMap((_) => getStudyDays());
   }
 
   // ─── Mappers ───────────────────────────────────────────────────────

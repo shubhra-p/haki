@@ -421,8 +421,8 @@ class _DeckStatsHeader extends StatelessWidget {
                         color: HakiColors.primary,
                       ),
                       _StatChip(
-                        label: 'Learning',
-                        count: deck.learningCards,
+                        label: 'In Review',
+                        count: deck.reviewCards,
                         color: HakiColors.secondary,
                       ),
                       _StatChip(

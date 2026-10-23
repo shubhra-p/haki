@@ -262,6 +262,28 @@ class CardDao extends DatabaseAccessor<HakiDatabase> with _$CardDaoMixin {
     return rows.length;
   }
 
+  /// Watch mastered card count across all decks (reactive)
+  Stream<int> watchMasteredCardCount() {
+    return (select(cardTable)
+          ..where((c) => c.reviewStatus.equals(ReviewStatus.mastered.name)))
+        .watch()
+        .map((rows) => rows.length);
+  }
+
+  /// Watch total due card count across all decks (reactive)
+  Stream<int> watchTotalDueCards() {
+    return db
+        .customSelect(
+          'SELECT 1',
+          readsFrom: {cardTable},
+        )
+        .watch()
+        .asyncMap((_) async {
+          final cards = await getAllDueCards();
+          return cards.length;
+        });
+  }
+
   /// Get cards that need attention (learning, errors, or lowest ease factor)
   Future<List<domain.FlashCard>> getNeedsAttentionCards({int limit = 5}) async {
     final rows = await (select(cardTable)
@@ -277,6 +299,23 @@ class CardDao extends DatabaseAccessor<HakiDatabase> with _$CardDaoMixin {
           ..limit(limit))
         .get();
     return rows.map(_toDomain).toList();
+  }
+
+  /// Watch cards that need attention (reactive)
+  Stream<List<domain.FlashCard>> watchNeedsAttentionCards({int limit = 5}) {
+    return (select(cardTable)
+          ..where(
+            (c) =>
+                c.reviewStatus.equals(ReviewStatus.learning.name) |
+                c.incorrectCount.isBiggerThanValue(0),
+          )
+          ..orderBy([
+            (c) => OrderingTerm.asc(c.easeFactor),
+            (c) => OrderingTerm.desc(c.incorrectCount),
+          ])
+          ..limit(limit))
+        .watch()
+        .map((rows) => rows.map(_toDomain).toList());
   }
 
   domain.FlashCard _toDomain(CardTableData data) {
