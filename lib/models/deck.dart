@@ -38,6 +38,12 @@ class Deck {
   /// Review cards = totalCards - newCards - masteredCards
   int get reviewCards => totalCards - newCards - masteredCards;
 
+  /// Cards that have already been studied/seen at least once
+  int get seenCards => totalCards - newCards;
+
+  /// Whether this deck has any cards that have been seen
+  bool get hasSeenCards => seenCards > 0;
+
   /// Progress percentage (0.0 - 1.0)
   double get progressPercent {
     if (totalCards == 0) return 0.0;

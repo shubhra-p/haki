@@ -438,27 +438,47 @@ class _StudyDeckTile extends StatelessWidget {
                 ],
               ),
             ),
-            ElevatedButton(
-              onPressed: () => context.push('/study/${deck.id}'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: due > 0
-                    ? (HakiColors.isDarkMode
-                        ? const Color(0xFF4F46E5)
-                        : HakiColors.primary)
-                    : HakiColors.surfaceContainerHigh,
-                foregroundColor:
-                    due > 0 ? Colors.white : HakiColors.textPrimary,
-                shape: RoundedRectangleBorder(borderRadius: HakiRadius.fullAll),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              ),
-              child: Text(
-                due > 0 ? 'Study' : 'Flip',
-                style: HakiTypography.labelSm.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: due > 0 ? Colors.white : HakiColors.textPrimary,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (deck.seenCards > 0) ...[
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(4),
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    icon: const Icon(Icons.shuffle, size: 18),
+                    tooltip: 'Revise seen cards (${deck.seenCards})',
+                    color: HakiColors.secondary,
+                    onPressed: () =>
+                        context.push('/study/${deck.id}?mode=revise_seen'),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                ElevatedButton(
+                  onPressed: () => context.push('/study/${deck.id}'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: due > 0
+                        ? (HakiColors.isDarkMode
+                            ? const Color(0xFF4F46E5)
+                            : HakiColors.primary)
+                        : HakiColors.surfaceContainerHigh,
+                    foregroundColor:
+                        due > 0 ? Colors.white : HakiColors.textPrimary,
+                    shape:
+                        RoundedRectangleBorder(borderRadius: HakiRadius.fullAll),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                  ),
+                  child: Text(
+                    due > 0 ? 'Study' : 'Flip',
+                    style: HakiTypography.labelSm.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: due > 0 ? Colors.white : HakiColors.textPrimary,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
@@ -470,8 +490,13 @@ class _StudyDeckTile extends StatelessWidget {
 /// Full study experience with 3D card flip, gesture swiping, and SM-2 feedback.
 class StudySessionScreen extends ConsumerStatefulWidget {
   final String deckId;
+  final bool isRevision;
 
-  const StudySessionScreen({super.key, required this.deckId});
+  const StudySessionScreen({
+    super.key,
+    required this.deckId,
+    this.isRevision = false,
+  });
 
   @override
   ConsumerState<StudySessionScreen> createState() => _StudySessionScreenState();
@@ -559,6 +584,9 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     ref.invalidate(deckByIdProvider(widget.deckId));
     ref.invalidate(totalDueCardsProvider);
     ref.invalidate(dueCardsForDeckProvider(widget.deckId));
+    ref.invalidate(seenCardsForDeckProvider(widget.deckId));
+    ref.invalidate(watchSeenCardsForDeckProvider(widget.deckId));
+    ref.invalidate(cardsForDeckProvider(widget.deckId));
     ref.invalidate(totalReviewCountProvider);
     ref.invalidate(totalStudyTimeProvider);
     ref.invalidate(studyDaysProvider);
@@ -592,13 +620,22 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   }
 
   Future<void> _loadCards() async {
-    final dueCards = await ref.read(cardDaoProvider).getDueCards(widget.deckId);
-    List<FlashCard> cardsToStudy = dueCards;
+    List<FlashCard> cardsToStudy;
 
-    // If no due cards, load all cards for quick practice
-    if (cardsToStudy.isEmpty) {
-      cardsToStudy =
-          await ref.read(cardDaoProvider).getCardsForDeck(widget.deckId);
+    if (widget.isRevision) {
+      final seenCards =
+          await ref.read(cardDaoProvider).getSeenCardsForDeck(widget.deckId);
+      cardsToStudy = List<FlashCard>.from(seenCards)..shuffle(math.Random());
+    } else {
+      final dueCards =
+          await ref.read(cardDaoProvider).getDueCards(widget.deckId);
+      cardsToStudy = dueCards;
+
+      // If no due cards, load all cards for quick practice
+      if (cardsToStudy.isEmpty) {
+        cardsToStudy =
+            await ref.read(cardDaoProvider).getCardsForDeck(widget.deckId);
+      }
     }
 
     if (mounted) {
@@ -779,30 +816,64 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     } else if (_cards.isEmpty) {
       content = Scaffold(
         backgroundColor: HakiColors.surface,
-        appBar: AppBar(title: const Text('Study')),
+        appBar: AppBar(
+          title: Text(widget.isRevision ? 'Revise Deck' : 'Study'),
+        ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                size: 64,
-                color: HakiColors.tertiary,
-              ),
-              const SizedBox(height: 16),
-              Text('No cards to review!', style: HakiTypography.headlineMd),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  final router = GoRouter.of(context);
-                  await _finalizeSession();
-                  if (mounted) {
-                    router.pop();
-                  }
-                },
-                child: const Text('Back to Decks'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.isRevision
+                      ? Icons.history
+                      : Icons.check_circle_outline,
+                  size: 64,
+                  color: widget.isRevision
+                      ? HakiColors.secondary
+                      : HakiColors.tertiary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  widget.isRevision
+                      ? 'No seen cards yet!'
+                      : 'No cards to review!',
+                  style: HakiTypography.headlineMd,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.isRevision
+                      ? 'You have not studied any cards in this deck yet. Study cards from this deck first to revise them.'
+                      : 'All cards in this deck are up to date.',
+                  style: HakiTypography.bodyMd
+                      .copyWith(color: HakiColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                if (widget.isRevision) ...[
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.pushReplacement('/study/${widget.deckId}');
+                    },
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Start Regular Study'),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                ElevatedButton(
+                  onPressed: () async {
+                    final router = GoRouter.of(context);
+                    await _finalizeSession();
+                    if (mounted) {
+                      router.pop();
+                    }
+                  },
+                  child: const Text('Back to Decks'),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -848,14 +919,21 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                Icons.style,
+                                widget.isRevision
+                                    ? Icons.shuffle
+                                    : Icons.style,
                                 size: 14,
-                                color: HakiColors.primary,
+                                color: widget.isRevision
+                                    ? HakiColors.secondary
+                                    : HakiColors.primary,
                               ),
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  deckAsync.valueOrNull?.name ?? 'Deck',
+                                  widget.isRevision
+                                      ? '${deckAsync.valueOrNull?.name ?? "Deck"} (Revision)'
+                                      : (deckAsync.valueOrNull?.name ??
+                                          'Deck'),
                                   style: HakiTypography.labelSm.copyWith(
                                     color: HakiColors.textPrimary,
                                     fontWeight: FontWeight.w600,
@@ -1686,14 +1764,18 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Daily Blast Finished!',
+                  widget.isRevision
+                      ? 'Revision Finished!'
+                      : 'Daily Blast Finished!',
                   style: HakiTypography.headlineLgMobile.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Great session! You reinforced $total cards from $deckName.',
+                  widget.isRevision
+                      ? 'Great revision! You reviewed all $total seen cards in $deckName (randomized).'
+                      : 'Great session! You reinforced $total cards from $deckName.',
                   style: HakiTypography.bodyMd
                       .copyWith(color: HakiColors.textSecondary),
                   textAlign: TextAlign.center,
@@ -1768,7 +1850,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       borderRadius: HakiRadius.fullAll,
                     ),
                   ),
-                  child: const Text('Review Again'),
+                  child: Text(
+                    widget.isRevision
+                        ? 'Revise Again (Randomized)'
+                        : 'Review Again',
+                  ),
                 ),
               ],
             ),

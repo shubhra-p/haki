@@ -76,7 +76,15 @@ final GoRouter appRouter = GoRouter(
       name: 'study-deck',
       builder: (context, state) {
         final deckId = state.pathParameters['deckId']!;
-        return StudySessionScreen(deckId: deckId);
+        final mode = state.uri.queryParameters['mode'];
+        final isRevision = mode == 'revise_seen' ||
+            mode == 'revision' ||
+            state.extra == 'revise_seen' ||
+            state.extra == true;
+        return StudySessionScreen(
+          deckId: deckId,
+          isRevision: isRevision,
+        );
       },
     ),
     GoRoute(

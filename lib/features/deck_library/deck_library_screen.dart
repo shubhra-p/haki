@@ -183,6 +183,21 @@ class _DeckLibraryScreenState extends ConsumerState<DeckLibraryScreen> {
                           onStudy: () => context.push(
                             '/study/${decks[index].id}',
                           ),
+                          onReviseSeen: () {
+                            if (decks[index].seenCards > 0) {
+                              context.push(
+                                '/study/${decks[index].id}?mode=revise_seen',
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'No seen cards yet. Study some cards first to revise them!',
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                           onDelete: () => _confirmDeleteDeck(decks[index]),
                         ),
                       ),
@@ -413,12 +428,14 @@ class _DeckCard extends StatelessWidget {
   final Deck deck;
   final VoidCallback onTap;
   final VoidCallback onStudy;
+  final VoidCallback? onReviseSeen;
   final VoidCallback onDelete;
 
   const _DeckCard({
     required this.deck,
     required this.onTap,
     required this.onStudy,
+    this.onReviseSeen,
     required this.onDelete,
   });
 
@@ -464,6 +481,9 @@ class _DeckCard extends StatelessWidget {
                     case 'study':
                       onStudy();
                       break;
+                    case 'reviseSeen':
+                      onReviseSeen?.call();
+                      break;
                     case 'import':
                       context.push('/import/${deck.id}');
                       break;
@@ -476,6 +496,10 @@ class _DeckCard extends StatelessWidget {
                   const PopupMenuItem(
                     value: 'study',
                     child: Text('Study Now'),
+                  ),
+                  PopupMenuItem(
+                    value: 'reviseSeen',
+                    child: Text('Revise Seen (${deck.seenCards})'),
                   ),
                   const PopupMenuItem(
                     value: 'import',
@@ -552,6 +576,16 @@ class _DeckCard extends StatelessWidget {
                   color: HakiColors.textSecondary,
                 ),
               ),
+              if (deck.seenCards > 0) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '${deck.seenCards} Seen',
+                  style: HakiTypography.bodySm.copyWith(
+                    color: HakiColors.secondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -561,14 +595,22 @@ class _DeckCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: onStudy,
+                  onPressed: onReviseSeen,
                   icon: const Icon(Icons.shuffle, size: 16),
                   label: Text(
-                    'Quick Flip (${deck.dueCards > 5 ? 5 : deck.dueCards})',
+                    'Revise Seen (${deck.seenCards})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: HakiColors.textPrimary,
-                    side: BorderSide(color: HakiColors.cardBorder),
+                    foregroundColor: deck.seenCards > 0
+                        ? HakiColors.secondary
+                        : HakiColors.textDisabled,
+                    side: BorderSide(
+                      color: deck.seenCards > 0
+                          ? HakiColors.secondary.withValues(alpha: 0.5)
+                          : HakiColors.cardBorder,
+                    ),
                     minimumSize: const Size(0, 40),
                     textStyle: HakiTypography.labelMd,
                   ),

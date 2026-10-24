@@ -94,6 +94,18 @@ final dueCardsForDeckProvider =
   return ref.watch(cardDaoProvider).getDueCards(deckId);
 });
 
+/// Seen cards for a deck (cards that have been studied/reviewed at least once)
+final seenCardsForDeckProvider =
+    FutureProvider.family<List<FlashCard>, String>((ref, deckId) {
+  return ref.watch(cardDaoProvider).getSeenCardsForDeck(deckId);
+});
+
+/// Watch seen cards for a deck (reactive)
+final watchSeenCardsForDeckProvider =
+    StreamProvider.family<List<FlashCard>, String>((ref, deckId) {
+  return ref.watch(cardDaoProvider).watchSeenCardsForDeck(deckId);
+});
+
 // Global Stats Providers
 
 /// Total review count

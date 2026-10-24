@@ -48,6 +48,36 @@ class CardDao extends DatabaseAccessor<HakiDatabase> with _$CardDaoMixin {
     return rows.map(_toDomain).toList();
   }
 
+  /// Get cards that have already been seen/reviewed in a deck
+  Future<List<domain.FlashCard>> getSeenCardsForDeck(String deckId) async {
+    final rows = await (select(cardTable)
+          ..where(
+            (c) =>
+                c.deckId.equals(deckId) &
+                (c.reviewStatus.isNotValue(ReviewStatus.newCard.name) |
+                    c.reviewCount.isBiggerThanValue(0) |
+                    c.lastReviewedAt.isNotNull()),
+          )
+          ..orderBy([(c) => OrderingTerm.asc(c.createdAt)]))
+        .get();
+    return rows.map(_toDomain).toList();
+  }
+
+  /// Watch cards that have already been seen/reviewed in a deck (reactive)
+  Stream<List<domain.FlashCard>> watchSeenCardsForDeck(String deckId) {
+    return (select(cardTable)
+          ..where(
+            (c) =>
+                c.deckId.equals(deckId) &
+                (c.reviewStatus.isNotValue(ReviewStatus.newCard.name) |
+                    c.reviewCount.isBiggerThanValue(0) |
+                    c.lastReviewedAt.isNotNull()),
+          )
+          ..orderBy([(c) => OrderingTerm.asc(c.createdAt)]))
+        .watch()
+        .map((rows) => rows.map(_toDomain).toList());
+  }
+
   /// Get all due cards across all decks
   Future<List<domain.FlashCard>> getAllDueCards() async {
     final now = DateTime.now();

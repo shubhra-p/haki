@@ -58,6 +58,33 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
           PopupMenuButton<String>(
             onSelected: _handleMenuAction,
             itemBuilder: (ctx) => [
+              PopupMenuItem(
+                value: 'reviseSeen',
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.shuffle,
+                      size: 18,
+                      color: HakiColors.secondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Revise Seen Cards (${deckAsync.valueOrNull?.seenCards ?? 0})',
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'studyDeck',
+                child: Row(
+                  children: [
+                    Icon(Icons.play_arrow, size: 18, color: HakiColors.primary),
+                    const SizedBox(width: 8),
+                    const Text('Study Deck'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
               const PopupMenuItem(value: 'rename', child: Text('Rename')),
               PopupMenuItem(
                 value: 'togglePlacement',
@@ -194,6 +221,23 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
 
   void _handleMenuAction(String action) async {
     switch (action) {
+      case 'reviseSeen':
+        final deck = ref.read(deckByIdProvider(widget.deckId)).valueOrNull;
+        if (deck != null && deck.seenCards > 0) {
+          context.push('/study/${widget.deckId}?mode=revise_seen');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'No seen cards yet. Study some cards first to revise them!',
+              ),
+            ),
+          );
+        }
+        break;
+      case 'studyDeck':
+        context.push('/study/${widget.deckId}');
+        break;
       case 'rename':
         _showRenameDialog();
         break;
@@ -399,46 +443,120 @@ class _DeckStatsHeader extends StatelessWidget {
       padding: HakiSpacing.screenPadding(context).copyWith(top: 8),
       child: HakiCard(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
           children: [
-            CircularProgressBadge(
-              progress: deck.progressPercent,
-              size: 56,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  HakiProgressBar(progress: deck.progressPercent),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Row(
+              children: [
+                CircularProgressBadge(
+                  progress: deck.progressPercent,
+                  size: 56,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _StatChip(
-                        label: 'New',
-                        count: deck.newCards,
-                        color: HakiColors.primary,
-                      ),
-                      _StatChip(
-                        label: 'In Review',
-                        count: deck.reviewCards,
-                        color: HakiColors.secondary,
-                      ),
-                      _StatChip(
-                        label: 'Mastered',
-                        count: deck.masteredCards,
-                        color: HakiColors.emerald,
-                      ),
-                      _StatChip(
-                        label: 'Due',
-                        count: deck.dueCards,
-                        color: HakiColors.rose,
+                      HakiProgressBar(progress: deck.progressPercent),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _StatChip(
+                            label: 'New',
+                            count: deck.newCards,
+                            color: HakiColors.primary,
+                          ),
+                          _StatChip(
+                            label: 'In Review',
+                            count: deck.reviewCards,
+                            color: HakiColors.secondary,
+                          ),
+                          _StatChip(
+                            label: 'Mastered',
+                            count: deck.masteredCards,
+                            color: HakiColors.emerald,
+                          ),
+                          _StatChip(
+                            label: 'Due',
+                            count: deck.dueCards,
+                            color: HakiColors.rose,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      if (deck.seenCards > 0) {
+                        context.push('/study/${deck.id}?mode=revise_seen');
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'No seen cards yet. Study some cards first to revise them!',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.shuffle, size: 16),
+                    label: Text(
+                      'Revise Seen (${deck.seenCards})',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: deck.seenCards > 0
+                          ? HakiColors.secondary
+                          : HakiColors.textDisabled,
+                      side: BorderSide(
+                        color: deck.seenCards > 0
+                            ? HakiColors.secondary.withValues(alpha: 0.5)
+                            : HakiColors.cardBorder,
+                      ),
+                      minimumSize: const Size(0, 40),
+                      textStyle: HakiTypography.labelMd,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: deck.totalCards > 0
+                        ? () => context.push('/study/${deck.id}')
+                        : null,
+                    icon: const Icon(
+                      Icons.play_arrow,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      deck.dueCards > 0
+                          ? 'Study (${deck.dueCards})'
+                          : 'Study Now',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: HakiColors.isDarkMode
+                          ? const Color(0xFF4F46E5)
+                          : HakiColors.primary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: HakiColors.surfaceContainerHigh,
+                      minimumSize: const Size(0, 40),
+                      textStyle: HakiTypography.labelMd
+                          .copyWith(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -96,11 +96,15 @@ class HakiPill extends StatelessWidget {
             Icon(icon, size: 14, color: textColor ?? HakiColors.textSecondary),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: HakiTypography.labelSm.copyWith(
-              color: textColor ?? HakiColors.textSecondary,
-              fontSize: fontSize,
+          Flexible(
+            child: Text(
+              label,
+              style: HakiTypography.labelSm.copyWith(
+                color: textColor ?? HakiColors.textSecondary,
+                fontSize: fontSize,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -304,25 +308,25 @@ class EmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
                 color: HakiColors.primaryFixed.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                size: 40,
+                size: 36,
                 color: HakiColors.primary,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               title,
               style: HakiTypography.headlineMd.copyWith(
@@ -330,7 +334,7 @@ class EmptyStateWidget extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               subtitle,
               style: HakiTypography.bodyMd.copyWith(
@@ -339,7 +343,7 @@ class EmptyStateWidget extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             if (actionLabel != null) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               HakiPillButton(
                 label: actionLabel!,
                 onPressed: onAction,
