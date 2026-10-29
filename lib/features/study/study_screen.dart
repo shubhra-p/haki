@@ -513,20 +513,30 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   bool _isLoading = true;
   bool _isCompleted = false;
 
-  // Drag physics state
-  Offset _dragOffset = Offset.zero;
-  double _dragAngle = 0.0;
+  // Drag physics state — isolated via ValueNotifier to avoid full-tree rebuilds
+  final ValueNotifier<Offset> _dragOffsetNotifier = ValueNotifier(Offset.zero);
+  final ValueNotifier<double> _dragAngleNotifier = ValueNotifier(0.0);
 
   // Session analytics
   int _xpEarned = 0;
-  int _secondsElapsed = 0;
+  // Timer isolated via ValueNotifier — ticks every second without rebuilding the tree
+  final ValueNotifier<int> _secondsElapsedNotifier = ValueNotifier(0);
   Timer? _sessionTimer;
+  Timer? _invalidationTimer;
   final List<ReviewRating> _sessionRatings = [];
   DateTime _cardStartTime = DateTime.now();
 
   String? _currentSessionId;
   bool _isSessionFinalized = false;
   bool _isSubmitting = false;
+
+  ProviderContainer? _container;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _container = ProviderScope.containerOf(context, listen: false);
+  }
 
   @override
   void initState() {
@@ -538,10 +548,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     _flipAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _flipController, curve: Curves.easeInOutBack),
     )..addListener(() {
-        if (_flipAnimation.value >= 0.5 && !_isBackVisible) {
-          setState(() => _isBackVisible = true);
-        } else if (_flipAnimation.value < 0.5 && _isBackVisible) {
-          setState(() => _isBackVisible = false);
+        // Only setState when the visible face actually changes (once per flip),
+        // not on every animation frame.
+        final shouldShowBack = _flipAnimation.value >= 0.5;
+        if (shouldShowBack != _isBackVisible) {
+          setState(() => _isBackVisible = shouldShowBack);
         }
       });
 
@@ -552,69 +563,76 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   void _startTimer() {
     _sessionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && !_isCompleted) {
-        setState(() => _secondsElapsed++);
+        _secondsElapsedNotifier.value++;
       }
     });
   }
 
-  Future<void> _finalizeSession() async {
+  void _finalizeSession({bool immediateInvalidate = false}) {
     if (_isSessionFinalized) return;
     _isSessionFinalized = true;
     _sessionTimer?.cancel();
-    if (_currentSessionId != null) {
-      final totalCount = _sessionRatings.length;
-      final correctCount =
-          _sessionRatings.where((r) => r != ReviewRating.again).length;
-      final incorrectCount = totalCount - correctCount;
-      try {
-        await ref.read(reviewDaoProvider).endSession(
-              sessionId: _currentSessionId!,
-              cardsStudied: totalCount,
-              correctCount: correctCount,
-              incorrectCount: incorrectCount,
-            );
-        await ref.read(deckDaoProvider).updateLastStudied(widget.deckId);
-      } catch (_) {}
-    }
-    _invalidateAllStats();
-  }
 
-  void _invalidateAllStats() {
-    ref.invalidate(allDecksProvider);
-    ref.invalidate(deckByIdProvider(widget.deckId));
-    ref.invalidate(totalDueCardsProvider);
-    ref.invalidate(dueCardsForDeckProvider(widget.deckId));
-    ref.invalidate(seenCardsForDeckProvider(widget.deckId));
-    ref.invalidate(watchSeenCardsForDeckProvider(widget.deckId));
-    ref.invalidate(cardsForDeckProvider(widget.deckId));
-    ref.invalidate(totalReviewCountProvider);
-    ref.invalidate(totalStudyTimeProvider);
-    ref.invalidate(studyDaysProvider);
-    ref.invalidate(currentStreakProvider);
-    ref.invalidate(longestStreakProvider);
-    ref.invalidate(totalMasteredProvider);
-    ref.invalidate(retentionRateProvider);
-    ref.invalidate(needsAttentionCardsProvider);
+    final container = _container;
+    if (container == null) return;
+
+    final sessionId = _currentSessionId;
+    final totalCount = _sessionRatings.length;
+    final correctCount =
+        _sessionRatings.where((r) => r != ReviewRating.again).length;
+    final incorrectCount = totalCount - correctCount;
+    final deckId = widget.deckId;
+    final reviewDao = container.read(reviewDaoProvider);
+    final deckDao = container.read(deckDaoProvider);
+
+    void executeInvalidate() {
+      container.invalidate(allDecksProvider);
+      container.invalidate(deckByIdProvider(deckId));
+      container.invalidate(totalDueCardsProvider);
+      container.invalidate(dueCardsForDeckProvider(deckId));
+      container.invalidate(seenCardsForDeckProvider(deckId));
+      container.invalidate(watchSeenCardsForDeckProvider(deckId));
+      container.invalidate(cardsForDeckProvider(deckId));
+      container.invalidate(totalReviewCountProvider);
+      container.invalidate(totalStudyTimeProvider);
+      container.invalidate(studyDaysProvider);
+      container.invalidate(currentStreakProvider);
+      container.invalidate(longestStreakProvider);
+      container.invalidate(totalMasteredProvider);
+      container.invalidate(retentionRateProvider);
+      container.invalidate(needsAttentionCardsProvider);
+    }
+
+    if (sessionId != null) {
+      reviewDao.endSession(
+        sessionId: sessionId,
+        cardsStudied: totalCount,
+        correctCount: correctCount,
+        incorrectCount: incorrectCount,
+      ).then((_) {
+        deckDao.updateLastStudied(deckId).catchError((_) {});
+      }).catchError((_) {});
+    }
+
+    if (immediateInvalidate || !mounted) {
+      executeInvalidate();
+    } else {
+      // Delay invalidation until the 200ms pop transition completes,
+      // so background screens don't re-render and drop frames during the animation.
+      _invalidationTimer = Timer(const Duration(milliseconds: 220), executeInvalidate);
+    }
   }
 
   @override
   void dispose() {
     _sessionTimer?.cancel();
+    _invalidationTimer?.cancel();
     _flipController.dispose();
-    if (!_isSessionFinalized && _currentSessionId != null) {
-      try {
-        final totalCount = _sessionRatings.length;
-        final correctCount =
-            _sessionRatings.where((r) => r != ReviewRating.again).length;
-        ref.read(reviewDaoProvider).endSession(
-              sessionId: _currentSessionId!,
-              cardsStudied: totalCount,
-              correctCount: correctCount,
-              incorrectCount: totalCount - correctCount,
-            );
-        ref.read(deckDaoProvider).updateLastStudied(widget.deckId);
-        _invalidateAllStats();
-      } catch (_) {}
+    _dragOffsetNotifier.dispose();
+    _dragAngleNotifier.dispose();
+    _secondsElapsedNotifier.dispose();
+    if (!_isSessionFinalized) {
+      _finalizeSession(immediateInvalidate: true);
     }
     super.dispose();
   }
@@ -635,6 +653,29 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       if (cardsToStudy.isEmpty) {
         cardsToStudy =
             await ref.read(cardDaoProvider).getCardsForDeck(widget.deckId);
+      }
+    }
+
+    // Wait for route entrance transition to finish before revealing the card,
+    // avoiding heavy layout recomputation mid-transition.
+    if (mounted) {
+      final modalRoute = ModalRoute.of(context);
+      final anim = modalRoute?.animation;
+      if (anim != null && !anim.isCompleted && anim.status == AnimationStatus.forward) {
+        final completer = Completer<void>();
+        void listener(AnimationStatus status) {
+          if (status == AnimationStatus.completed) {
+            anim.removeStatusListener(listener);
+            if (!completer.isCompleted) completer.complete();
+          }
+        }
+        anim.addStatusListener(listener);
+        await completer.future.timeout(
+          const Duration(milliseconds: 300),
+          onTimeout: () {
+            anim.removeStatusListener(listener);
+          },
+        );
       }
     }
 
@@ -755,11 +796,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
             _cardStartTime = DateTime.now();
             _isBackVisible = false;
             _flipController.reset();
-            _dragOffset = Offset.zero;
-            _dragAngle = 0.0;
+            _dragOffsetNotifier.value = Offset.zero;
+            _dragAngleNotifier.value = 0.0;
           } else {
             _isCompleted = true;
-            _finalizeSession();
+            _finalizeSession(immediateInvalidate: true);
           }
         });
       }
@@ -769,30 +810,30 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      _dragOffset += details.delta;
-      _dragAngle = (_dragOffset.dx / 300) * (math.pi / 16);
-    });
+    // Update ValueNotifiers directly — only the card transform rebuilds,
+    // not the entire screen widget tree.
+    final newOffset = _dragOffsetNotifier.value + details.delta;
+    _dragOffsetNotifier.value = newOffset;
+    _dragAngleNotifier.value = (newOffset.dx / 300) * (math.pi / 16);
   }
 
   void _onPanEnd(DragEndDetails details) {
     const threshold = 120.0;
-    if (_dragOffset.dx > threshold) {
+    final dx = _dragOffsetNotifier.value.dx;
+    if (dx > threshold) {
       // Swiped right -> Mastered
       _submitRating(ReviewRating.easy, isMastered: true);
-    } else if (_dragOffset.dx < -threshold) {
+    } else if (dx < -threshold) {
       // Swiped left -> Retry / Again
       _submitRating(ReviewRating.again);
     } else {
-      // Return to center
-      setState(() {
-        _dragOffset = Offset.zero;
-        _dragAngle = 0.0;
-      });
+      // Return to center — only the transform widget rebuilds
+      _dragOffsetNotifier.value = Offset.zero;
+      _dragAngleNotifier.value = 0.0;
     }
   }
 
-  String _formatTimer(int totalSeconds) {
+  static String _formatTimer(int totalSeconds) {
     final m = (totalSeconds ~/ 60).toString().padLeft(2, '0');
     final s = (totalSeconds % 60).toString().padLeft(2, '0');
     return '$m:$s';
@@ -863,12 +904,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                   const SizedBox(height: 12),
                 ],
                 ElevatedButton(
-                  onPressed: () async {
+                  onPressed: () {
                     final router = GoRouter.of(context);
-                    await _finalizeSession();
-                    if (mounted) {
-                      router.pop();
-                    }
+                    _finalizeSession();
+                    router.pop();
                   },
                   child: const Text('Back to Decks'),
                 ),
@@ -880,16 +919,6 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     } else {
       final currentCard = _cards[_currentIndex];
       final progress = (_currentIndex + 1) / _cards.length;
-
-      // Swiping aura colors
-      Color? auraColor;
-      if (_dragOffset.dx > 40) {
-        auraColor = HakiColors.tertiary
-            .withValues(alpha: math.min(1.0, _dragOffset.dx / 200));
-      } else if (_dragOffset.dx < -40) {
-        auraColor = HakiColors.rose
-            .withValues(alpha: math.min(1.0, -_dragOffset.dx / 200));
-      }
 
       content = Scaffold(
         backgroundColor: HakiColors.surface,
@@ -1030,12 +1059,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         color: HakiColors.textSecondary,
                         size: 20,
                       ),
-                      onPressed: () async {
+                      onPressed: () {
                         final router = GoRouter.of(context);
-                        await _finalizeSession();
-                        if (mounted) {
-                          router.pop();
-                        }
+                        _finalizeSession();
+                        router.pop();
                       },
                     ),
                   ],
@@ -1129,11 +1156,14 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                               color: HakiColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              _formatTimer(_secondsElapsed),
-                              style: HakiTypography.labelSm.copyWith(
-                                color: HakiColors.textSecondary,
-                                fontWeight: FontWeight.bold,
+                            ValueListenableBuilder<int>(
+                              valueListenable: _secondsElapsedNotifier,
+                              builder: (context, seconds, _) => Text(
+                                _formatTimer(seconds),
+                                style: HakiTypography.labelSm.copyWith(
+                                  color: HakiColors.textSecondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
@@ -1186,41 +1216,61 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                     onPanUpdate: _onPanUpdate,
                     onPanEnd: _onPanEnd,
                     onTap: _flipCard,
-                    child: Transform(
-                      transform: Matrix4.translationValues(
-                        _dragOffset.dx,
-                        _dragOffset.dy,
-                        0.0,
-                      )..rotateZ(_dragAngle),
-                      alignment: Alignment.center,
-                      child: AnimatedBuilder(
-                        animation: _flipAnimation,
-                        builder: (context, child) {
-                          final angle = _flipAnimation.value * math.pi;
-                          return Transform(
-                            transform: Matrix4.identity()
-                              ..setEntry(3, 2, 0.001) // 3D perspective
-                              ..rotateY(angle),
-                            alignment: Alignment.center,
-                            child: _isBackVisible
-                                ? Transform(
-                                    transform: Matrix4.identity()
-                                      ..rotateY(math.pi),
-                                    alignment: Alignment.center,
-                                    child: _buildCardBack(
-                                      currentCard,
-                                      auraColor,
-                                      showReadingOnBack: !showReadingOnFront,
-                                    ),
-                                  )
-                                : _buildCardFront(
-                                    currentCard,
-                                    auraColor,
-                                    showReading: showReadingOnFront,
-                                  ),
-                          );
-                        },
-                      ),
+                    // ValueListenableBuilder isolates drag rebuilds:
+                    // only the Transform + card subtree rebuilds on drag,
+                    // not the entire screen.
+                    child: ValueListenableBuilder<Offset>(
+                      valueListenable: _dragOffsetNotifier,
+                      builder: (context, dragOffset, flipChild) {
+                        final dragAngle = _dragAngleNotifier.value;
+
+                        // Compute aura color from current drag offset
+                        Color? auraColor;
+                        if (dragOffset.dx > 40) {
+                          auraColor = HakiColors.tertiary
+                              .withValues(alpha: math.min(1.0, dragOffset.dx / 200));
+                        } else if (dragOffset.dx < -40) {
+                          auraColor = HakiColors.rose
+                              .withValues(alpha: math.min(1.0, -dragOffset.dx / 200));
+                        }
+
+                        return Transform(
+                          transform: Matrix4.translationValues(
+                            dragOffset.dx,
+                            dragOffset.dy,
+                            0.0,
+                          )..rotateZ(dragAngle),
+                          alignment: Alignment.center,
+                          child: AnimatedBuilder(
+                            animation: _flipAnimation,
+                            builder: (context, child) {
+                              final angle = _flipAnimation.value * math.pi;
+                              return Transform(
+                                transform: Matrix4.identity()
+                                  ..setEntry(3, 2, 0.001) // 3D perspective
+                                  ..rotateY(angle),
+                                alignment: Alignment.center,
+                                child: _isBackVisible
+                                    ? Transform(
+                                        transform: Matrix4.identity()
+                                          ..rotateY(math.pi),
+                                        alignment: Alignment.center,
+                                        child: _buildCardBack(
+                                          currentCard,
+                                          auraColor,
+                                          showReadingOnBack: !showReadingOnFront,
+                                        ),
+                                      )
+                                    : _buildCardFront(
+                                        currentCard,
+                                        auraColor,
+                                        showReading: showReadingOnFront,
+                                      ),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -1360,8 +1410,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
 
     return PopScope(
       canPop: true,
-      onPopInvokedWithResult: (didPop, result) async {
-        await _finalizeSession();
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _finalizeSession();
+        }
       },
       child: content,
     );
@@ -1801,7 +1853,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       ),
                       _StatColumn(
                         label: 'Time Spent',
-                        value: _formatTimer(_secondsElapsed),
+                        value: _formatTimer(_secondsElapsedNotifier.value),
                         icon: Icons.timer,
                         color: HakiColors.primary,
                       ),
@@ -1819,12 +1871,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                 HakiButton(
                   label: 'Back to Deck Library',
                   icon: Icons.arrow_back,
-                  onPressed: () async {
+                  onPressed: () {
                     final router = GoRouter.of(context);
-                    await _finalizeSession();
-                    if (mounted) {
-                      router.go('/decks');
-                    }
+                    _finalizeSession(immediateInvalidate: true);
+                    router.go('/decks');
                   },
                 ),
                 const SizedBox(height: 12),
@@ -1837,7 +1887,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       _currentSessionId = null;
                       _isSessionFinalized = false;
                       _sessionRatings.clear();
-                      _secondsElapsed = 0;
+                      _secondsElapsedNotifier.value = 0;
                       _loadCards();
                     });
                   },

@@ -43,15 +43,12 @@ class ShellScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    ref.watch(themeModeProvider);
     final selectedIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
       backgroundColor: HakiColors.surface,
-      body: KeyedSubtree(
-        key: ValueKey('shell_page_${themeMode.name}_${HakiColors.isDarkMode}'),
-        child: child,
-      ),
+      body: child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: HakiColors.cardBackground,

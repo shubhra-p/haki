@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/deck_library/deck_library_screen.dart';
@@ -22,6 +23,39 @@ class AppRoutes {
   static const String csvImportToDeck = '/import/:deckId';
   static const String addCard = '/decks/:deckId/add';
   static const String editCard = '/decks/:deckId/edit/:cardId';
+}
+
+/// Lightweight fade + slide transition for detail pages.
+/// Much cheaper than CupertinoPageTransitionsBuilder which renders
+/// a full-screen shadow composite during the slide animation.
+CustomTransitionPage<T> _smoothPage<T>({
+  required Widget child,
+  required GoRouterState state,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 250),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.06, 0.0),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        ),
+      );
+    },
+  );
 }
 
 /// GoRouter configuration
@@ -63,54 +97,71 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
     // Detail routes (outside shell for full-screen experience)
+    // Use lightweight fade+slide instead of heavy Cupertino transitions
     GoRoute(
       path: AppRoutes.deckDetail,
       name: 'deck-detail',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final deckId = state.pathParameters['deckId']!;
-        return DeckDetailScreen(deckId: deckId);
+        return _smoothPage(
+          state: state,
+          child: DeckDetailScreen(deckId: deckId),
+        );
       },
     ),
     GoRoute(
       path: AppRoutes.studyDeck,
       name: 'study-deck',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final deckId = state.pathParameters['deckId']!;
         final mode = state.uri.queryParameters['mode'];
         final isRevision = mode == 'revise_seen' ||
             mode == 'revision' ||
             state.extra == 'revise_seen' ||
             state.extra == true;
-        return StudySessionScreen(
-          deckId: deckId,
-          isRevision: isRevision,
+        return _smoothPage(
+          state: state,
+          child: StudySessionScreen(
+            deckId: deckId,
+            isRevision: isRevision,
+          ),
         );
       },
     ),
     GoRoute(
       path: AppRoutes.csvImportToDeck,
       name: 'import-to-deck',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final deckId = state.pathParameters['deckId']!;
-        return CsvImportScreen(existingDeckId: deckId);
+        return _smoothPage(
+          state: state,
+          child: CsvImportScreen(existingDeckId: deckId),
+        );
       },
     ),
     GoRoute(
       path: AppRoutes.addCard,
       name: 'add-card',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final deckId = state.pathParameters['deckId']!;
-        return CardEditorScreen(deckId: deckId);
+        return _smoothPage(
+          state: state,
+          child: CardEditorScreen(deckId: deckId),
+        );
       },
     ),
     GoRoute(
       path: AppRoutes.editCard,
       name: 'edit-card',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final deckId = state.pathParameters['deckId']!;
         final cardId = state.pathParameters['cardId']!;
-        return CardEditorScreen(deckId: deckId, cardId: cardId);
+        return _smoothPage(
+          state: state,
+          child: CardEditorScreen(deckId: deckId, cardId: cardId),
+        );
       },
     ),
   ],
 );
+
