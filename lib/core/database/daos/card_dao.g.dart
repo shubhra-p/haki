@@ -6,4 +6,14 @@ part of 'card_dao.dart';
 mixin _$CardDaoMixin on DatabaseAccessor<HakiDatabase> {
   $DeckTableTable get deckTable => attachedDatabase.deckTable;
   $CardTableTable get cardTable => attachedDatabase.cardTable;
+  CardDaoManager get managers => CardDaoManager(this);
+}
+
+class CardDaoManager {
+  final _$CardDaoMixin _db;
+  CardDaoManager(this._db);
+  $$DeckTableTableTableManager get deckTable =>
+      $$DeckTableTableTableManager(_db.attachedDatabase, _db.deckTable);
+  $$CardTableTableTableManager get cardTable =>
+      $$CardTableTableTableManager(_db.attachedDatabase, _db.cardTable);
 }

@@ -154,7 +154,8 @@ void main() {
       expect(freshDeck.hasSeenCards, isFalse);
     });
 
-    test('Randomization shuffles order of seen cards with elements preserved', () {
+    test('Randomization shuffles order of seen cards with elements preserved',
+        () {
       final cards = List.generate(
         20,
         (i) => FlashCard(
@@ -186,7 +187,9 @@ void main() {
       expect(shuffledIds2, isNot(equals(shuffledIds1)));
     });
 
-    test('Seen cards filter logic includes learning, review, and mastered, excluding new cards', () {
+    test(
+        'Seen cards filter logic includes learning, review, and mastered, excluding new cards',
+        () {
       final now = DateTime.now();
       final cardNew = FlashCard(
         id: 'c1',
@@ -245,7 +248,8 @@ void main() {
   });
 
   group('Revision UI and Navigation Widget Tests', () {
-    testWidgets('StudySessionScreen displays Revision top bar pill and seen card in revision mode',
+    testWidgets(
+        'StudySessionScreen displays Revision top bar pill and seen card in revision mode',
         (WidgetTester tester) async {
       final now = DateTime.now();
       final seenCard1 = FlashCard(
@@ -318,7 +322,8 @@ void main() {
       );
     });
 
-    testWidgets('StudySessionScreen displays empty state when deck has 0 seen cards in revision mode',
+    testWidgets(
+        'StudySessionScreen displays empty state when deck has 0 seen cards in revision mode',
         (WidgetTester tester) async {
       final now = DateTime.now();
       final deck = Deck(
@@ -365,7 +370,8 @@ void main() {
       expect(find.text('Back to Decks'), findsOneWidget);
     });
 
-    testWidgets('DeckDetailScreen renders Revise Seen button and Study button in stats header',
+    testWidgets(
+        'DeckDetailScreen renders Revise Seen button and Study button in stats header',
         (WidgetTester tester) async {
       final now = DateTime.now();
       final deck = Deck(
@@ -405,7 +411,8 @@ void main() {
       expect(find.byIcon(Icons.shuffle), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('DeckLibraryScreen deck card displays Revise Seen button and seen count',
+    testWidgets(
+        'DeckLibraryScreen deck card displays Revise Seen button and seen count',
         (WidgetTester tester) async {
       final now = DateTime.now();
       final deck = Deck(
@@ -445,7 +452,8 @@ void main() {
       expect(find.text('Study Now'), findsOneWidget);
     });
 
-    testWidgets('StudyHomeScreen _StudyDeckTile displays shuffle revise button when deck has seen cards',
+    testWidgets(
+        'StudyHomeScreen _StudyDeckTile displays shuffle revise button when deck has seen cards',
         (WidgetTester tester) async {
       final now = DateTime.now();
       final deckWithSeen = Deck(
@@ -465,7 +473,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            allDecksProvider.overrideWith((ref) => Stream.value([deckWithSeen])),
+            allDecksProvider
+                .overrideWith((ref) => Stream.value([deckWithSeen])),
             totalDueCardsProvider.overrideWith((ref) => Future.value(0)),
             currentStreakProvider.overrideWith((ref) => Future.value(5)),
             deckDaoProvider.overrideWithValue(fakeDeckDao),

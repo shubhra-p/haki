@@ -465,8 +465,9 @@ class _StudyDeckTile extends StatelessWidget {
                         : HakiColors.surfaceContainerHigh,
                     foregroundColor:
                         due > 0 ? Colors.white : HakiColors.textPrimary,
-                    shape:
-                        RoundedRectangleBorder(borderRadius: HakiRadius.fullAll),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: HakiRadius.fullAll,
+                    ),
                     padding:
                         const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                   ),
@@ -604,12 +605,14 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     }
 
     if (sessionId != null) {
-      reviewDao.endSession(
+      reviewDao
+          .endSession(
         sessionId: sessionId,
         cardsStudied: totalCount,
         correctCount: correctCount,
         incorrectCount: incorrectCount,
-      ).then((_) {
+      )
+          .then((_) {
         deckDao.updateLastStudied(deckId).catchError((_) {});
       }).catchError((_) {});
     }
@@ -619,7 +622,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     } else {
       // Delay invalidation until the 200ms pop transition completes,
       // so background screens don't re-render and drop frames during the animation.
-      _invalidationTimer = Timer(const Duration(milliseconds: 220), executeInvalidate);
+      _invalidationTimer =
+          Timer(const Duration(milliseconds: 220), executeInvalidate);
     }
   }
 
@@ -661,7 +665,9 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     if (mounted) {
       final modalRoute = ModalRoute.of(context);
       final anim = modalRoute?.animation;
-      if (anim != null && !anim.isCompleted && anim.status == AnimationStatus.forward) {
+      if (anim != null &&
+          !anim.isCompleted &&
+          anim.status == AnimationStatus.forward) {
         final completer = Completer<void>();
         void listener(AnimationStatus status) {
           if (status == AnimationStatus.completed) {
@@ -669,6 +675,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
             if (!completer.isCompleted) completer.complete();
           }
         }
+
         anim.addStatusListener(listener);
         await completer.future.timeout(
           const Duration(milliseconds: 300),
@@ -709,7 +716,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     }
   }
 
-  Future<void> _submitRating(ReviewRating rating, {bool isMastered = false}) async {
+  Future<void> _submitRating(
+    ReviewRating rating, {
+    bool isMastered = false,
+  }) async {
     if (_isSubmitting || _cards.isEmpty || _currentIndex >= _cards.length) {
       return;
     }
@@ -789,7 +799,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       if (mounted) {
         setState(() {
           _sessionRatings.add(rating);
-          _xpEarned += rating == ReviewRating.again ? 5 : (isMastered ? 25 : 15);
+          _xpEarned +=
+              rating == ReviewRating.again ? 5 : (isMastered ? 25 : 15);
 
           if (_currentIndex + 1 < _cards.length) {
             _currentIndex++;
@@ -843,7 +854,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   Widget build(BuildContext context) {
     ref.watch(themeModeProvider);
     final deckAsync = ref.watch(deckByIdProvider(widget.deckId));
-    final showReadingOnFront = deckAsync.valueOrNull?.showReadingOnFront ?? true;
+    final showReadingOnFront =
+        deckAsync.valueOrNull?.showReadingOnFront ?? true;
     final streakAsync = ref.watch(currentStreakProvider);
     final streak = streakAsync.valueOrNull ?? 0;
     final Widget content;
@@ -927,7 +939,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
             children: [
               // ─── Header Top Bar ─────────────────────────────────
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     // Deck pill - Expanded + Align + Flexible text ensures long deck names never overflow
@@ -948,9 +961,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                widget.isRevision
-                                    ? Icons.shuffle
-                                    : Icons.style,
+                                widget.isRevision ? Icons.shuffle : Icons.style,
                                 size: 14,
                                 color: widget.isRevision
                                     ? HakiColors.secondary
@@ -961,8 +972,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                                 child: Text(
                                   widget.isRevision
                                       ? '${deckAsync.valueOrNull?.name ?? "Deck"} (Revision)'
-                                      : (deckAsync.valueOrNull?.name ??
-                                          'Deck'),
+                                      : (deckAsync.valueOrNull?.name ?? 'Deck'),
                                   style: HakiTypography.labelSm.copyWith(
                                     color: HakiColors.textPrimary,
                                     fontWeight: FontWeight.w600,
@@ -1021,8 +1031,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                     const SizedBox(width: 4),
                     // Streak pill
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: HakiColors.secondary.withValues(alpha: 0.12),
                         borderRadius: HakiRadius.fullAll,
@@ -1069,343 +1081,348 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                 ),
               ),
 
-            // ─── Progress & Stats Subheader ─────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Row(
+              // ─── Progress & Stats Subheader ─────────────────────
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.content_copy,
+                            size: 16,
+                            color: HakiColors.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'Card ${_currentIndex + 1} ',
+                              style: HakiTypography.headlineSm.copyWith(
+                                fontSize: 16,
+                                color: HakiColors.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            '/ ${_cards.length}',
+                            style: HakiTypography.bodySm.copyWith(
+                              color: HakiColors.textSecondary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.content_copy,
-                          size: 16,
-                          color: HakiColors.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'Card ${_currentIndex + 1} ',
-                            style: HakiTypography.headlineSm.copyWith(
-                              fontSize: 16,
-                              color: HakiColors.textPrimary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
-                        ),
-                        Text(
-                          '/ ${_cards.length}',
-                          style: HakiTypography.bodySm.copyWith(
-                            color: HakiColors.textSecondary,
-                            fontWeight: FontWeight.bold,
+                          decoration: BoxDecoration(
+                            color: HakiColors.secondary.withValues(alpha: 0.12),
+                            borderRadius: HakiRadius.fullAll,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HakiColors.secondary.withValues(alpha: 0.12),
-                          borderRadius: HakiRadius.fullAll,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 12,
-                              color: HakiColors.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '+$_xpEarned XP',
-                              style: HakiTypography.labelSm.copyWith(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                size: 12,
                                 color: HakiColors.secondary,
-                                fontWeight: FontWeight.bold,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HakiColors.surfaceContainerLow,
-                          borderRadius: HakiRadius.fullAll,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.schedule,
-                              size: 12,
-                              color: HakiColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            ValueListenableBuilder<int>(
-                              valueListenable: _secondsElapsedNotifier,
-                              builder: (context, seconds, _) => Text(
-                                _formatTimer(seconds),
+                              const SizedBox(width: 4),
+                              Text(
+                                '+$_xpEarned XP',
                                 style: HakiTypography.labelSm.copyWith(
-                                  color: HakiColors.textSecondary,
+                                  color: HakiColors.secondary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Animated Gradient Progress Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: ClipRRect(
-                borderRadius: HakiRadius.fullAll,
-                child: SizedBox(
-                  height: 6,
-                  child: Stack(
-                    children: [
-                      Container(color: HakiColors.surfaceContainerHigh),
-                      FractionallySizedBox(
-                        widthFactor: progress.clamp(0.0, 1.0),
-                        child: Container(
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                HakiColors.primary,
-                                HakiColors.secondary,
-                                HakiColors.tertiary,
-                              ],
+                            color: HakiColors.surfaceContainerLow,
+                            borderRadius: HakiRadius.fullAll,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 12,
+                                color: HakiColors.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              ValueListenableBuilder<int>(
+                                valueListenable: _secondsElapsedNotifier,
+                                builder: (context, seconds, _) => Text(
+                                  _formatTimer(seconds),
+                                  style: HakiTypography.labelSm.copyWith(
+                                    color: HakiColors.textSecondary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Animated Gradient Progress Bar
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: ClipRRect(
+                  borderRadius: HakiRadius.fullAll,
+                  child: SizedBox(
+                    height: 6,
+                    child: Stack(
+                      children: [
+                        Container(color: HakiColors.surfaceContainerHigh),
+                        FractionallySizedBox(
+                          widthFactor: progress.clamp(0.0, 1.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  HakiColors.primary,
+                                  HakiColors.secondary,
+                                  HakiColors.tertiary,
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // ─── 3D Flashcard Stage ─────────────────────────────
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: GestureDetector(
-                    onPanUpdate: _onPanUpdate,
-                    onPanEnd: _onPanEnd,
-                    onTap: _flipCard,
-                    // ValueListenableBuilder isolates drag rebuilds:
-                    // only the Transform + card subtree rebuilds on drag,
-                    // not the entire screen.
-                    child: ValueListenableBuilder<Offset>(
-                      valueListenable: _dragOffsetNotifier,
-                      builder: (context, dragOffset, flipChild) {
-                        final dragAngle = _dragAngleNotifier.value;
+              // ─── 3D Flashcard Stage ─────────────────────────────
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: GestureDetector(
+                      onPanUpdate: _onPanUpdate,
+                      onPanEnd: _onPanEnd,
+                      onTap: _flipCard,
+                      // ValueListenableBuilder isolates drag rebuilds:
+                      // only the Transform + card subtree rebuilds on drag,
+                      // not the entire screen.
+                      child: ValueListenableBuilder<Offset>(
+                        valueListenable: _dragOffsetNotifier,
+                        builder: (context, dragOffset, flipChild) {
+                          final dragAngle = _dragAngleNotifier.value;
 
-                        // Compute aura color from current drag offset
-                        Color? auraColor;
-                        if (dragOffset.dx > 40) {
-                          auraColor = HakiColors.tertiary
-                              .withValues(alpha: math.min(1.0, dragOffset.dx / 200));
-                        } else if (dragOffset.dx < -40) {
-                          auraColor = HakiColors.rose
-                              .withValues(alpha: math.min(1.0, -dragOffset.dx / 200));
-                        }
+                          // Compute aura color from current drag offset
+                          Color? auraColor;
+                          if (dragOffset.dx > 40) {
+                            auraColor = HakiColors.tertiary.withValues(
+                              alpha: math.min(1.0, dragOffset.dx / 200),
+                            );
+                          } else if (dragOffset.dx < -40) {
+                            auraColor = HakiColors.rose.withValues(
+                              alpha: math.min(1.0, -dragOffset.dx / 200),
+                            );
+                          }
 
-                        return Transform(
-                          transform: Matrix4.translationValues(
-                            dragOffset.dx,
-                            dragOffset.dy,
-                            0.0,
-                          )..rotateZ(dragAngle),
-                          alignment: Alignment.center,
-                          child: AnimatedBuilder(
-                            animation: _flipAnimation,
-                            builder: (context, child) {
-                              final angle = _flipAnimation.value * math.pi;
-                              return Transform(
-                                transform: Matrix4.identity()
-                                  ..setEntry(3, 2, 0.001) // 3D perspective
-                                  ..rotateY(angle),
-                                alignment: Alignment.center,
-                                child: _isBackVisible
-                                    ? Transform(
-                                        transform: Matrix4.identity()
-                                          ..rotateY(math.pi),
-                                        alignment: Alignment.center,
-                                        child: _buildCardBack(
+                          return Transform(
+                            transform: Matrix4.translationValues(
+                              dragOffset.dx,
+                              dragOffset.dy,
+                              0.0,
+                            )..rotateZ(dragAngle),
+                            alignment: Alignment.center,
+                            child: AnimatedBuilder(
+                              animation: _flipAnimation,
+                              builder: (context, child) {
+                                final angle = _flipAnimation.value * math.pi;
+                                return Transform(
+                                  transform: Matrix4.identity()
+                                    ..setEntry(3, 2, 0.001) // 3D perspective
+                                    ..rotateY(angle),
+                                  alignment: Alignment.center,
+                                  child: _isBackVisible
+                                      ? Transform(
+                                          transform: Matrix4.identity()
+                                            ..rotateY(math.pi),
+                                          alignment: Alignment.center,
+                                          child: _buildCardBack(
+                                            currentCard,
+                                            auraColor,
+                                            showReadingOnBack:
+                                                !showReadingOnFront,
+                                          ),
+                                        )
+                                      : _buildCardFront(
                                           currentCard,
                                           auraColor,
-                                          showReadingOnBack: !showReadingOnFront,
+                                          showReading: showReadingOnFront,
                                         ),
-                                      )
-                                    : _buildCardFront(
-                                        currentCard,
-                                        auraColor,
-                                        showReading: showReadingOnFront,
-                                      ),
-                              );
-                            },
-                          ),
-                        );
-                      },
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // ─── Directional Feedback Indicators ────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.arrow_back,
-                          size: 14,
-                          color: HakiColors.rose,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            'Swipe Left: Retry',
-                            style: HakiTypography.labelSm.copyWith(
-                              color: HakiColors.rose,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+              // ─── Directional Feedback Indicators ────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.arrow_back,
+                            size: 14,
+                            color: HakiColors.rose,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Swipe Right: Mastered',
-                            style: HakiTypography.labelSm.copyWith(
-                              color: HakiColors.tertiary,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              'Swipe Left: Retry',
+                              style: HakiTypography.labelSm.copyWith(
+                                color: HakiColors.rose,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 14,
-                          color: HakiColors.tertiary,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Swipe Right: Mastered',
+                              style: HakiTypography.labelSm.copyWith(
+                                color: HakiColors.tertiary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_forward,
+                            size: 14,
+                            color: HakiColors.tertiary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // ─── Bottom 4 Rating Buttons ────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _RatingButton(
-                      label: 'Again',
-                      interval: '1 min',
-                      icon: Icons.close,
-                      bgColor: HakiColors.roseTint,
-                      borderColor: HakiColors.roseBorder,
-                      textColor: HakiColors.rose,
-                      onTap: () => _submitRating(ReviewRating.again),
+              // ─── Bottom 4 Rating Buttons ────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _RatingButton(
+                        label: 'Again',
+                        interval: '1 min',
+                        icon: Icons.close,
+                        bgColor: HakiColors.roseTint,
+                        borderColor: HakiColors.roseBorder,
+                        textColor: HakiColors.rose,
+                        onTap: () => _submitRating(ReviewRating.again),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _RatingButton(
-                      label: 'Hard',
-                      interval: '10 min',
-                      icon: Icons.priority_high,
-                      bgColor: HakiColors.surfaceContainerLow,
-                      borderColor: HakiColors.cardBorder,
-                      textColor: HakiColors.textPrimary,
-                      onTap: () => _submitRating(ReviewRating.hard),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _RatingButton(
+                        label: 'Hard',
+                        interval: '10 min',
+                        icon: Icons.priority_high,
+                        bgColor: HakiColors.surfaceContainerLow,
+                        borderColor: HakiColors.cardBorder,
+                        textColor: HakiColors.textPrimary,
+                        onTap: () => _submitRating(ReviewRating.hard),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _RatingButton(
-                      label: 'Good',
-                      interval: '1 day',
-                      icon: Icons.check,
-                      bgColor: HakiColors.isDarkMode
-                          ? const Color(0xFF262354)
-                          : HakiColors.primary.withValues(alpha: 0.12),
-                      borderColor: HakiColors.isDarkMode
-                          ? const Color(0xFF4F46E5)
-                          : HakiColors.primary.withValues(alpha: 0.25),
-                      textColor: HakiColors.isDarkMode
-                          ? Colors.white
-                          : HakiColors.primary,
-                      onTap: () => _submitRating(ReviewRating.good),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _RatingButton(
+                        label: 'Good',
+                        interval: '1 day',
+                        icon: Icons.check,
+                        bgColor: HakiColors.isDarkMode
+                            ? const Color(0xFF262354)
+                            : HakiColors.primary.withValues(alpha: 0.12),
+                        borderColor: HakiColors.isDarkMode
+                            ? const Color(0xFF4F46E5)
+                            : HakiColors.primary.withValues(alpha: 0.25),
+                        textColor: HakiColors.isDarkMode
+                            ? Colors.white
+                            : HakiColors.primary,
+                        onTap: () => _submitRating(ReviewRating.good),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _RatingButton(
-                      label: 'Easy',
-                      interval: '4 days',
-                      icon: Icons.star,
-                      bgColor: HakiColors.emeraldTint,
-                      borderColor: HakiColors.emeraldBorder,
-                      textColor: HakiColors.tertiary,
-                      onTap: () => _submitRating(ReviewRating.easy),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _RatingButton(
+                        label: 'Easy',
+                        interval: '4 days',
+                        icon: Icons.star,
+                        bgColor: HakiColors.emeraldTint,
+                        borderColor: HakiColors.emeraldBorder,
+                        textColor: HakiColors.tertiary,
+                        onTap: () => _submitRating(ReviewRating.easy),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
-      ),
-    );
+      );
     }
 
     return PopScope(

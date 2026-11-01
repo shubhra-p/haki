@@ -8,7 +8,8 @@ void main() {
     const scheduler = SpacedRepetitionScheduler();
     const analytics = AnalyticsCalculator();
 
-    test('Mastered card has interval >= 21 and status ReviewStatus.mastered', () {
+    test('Mastered card has interval >= 21 and status ReviewStatus.mastered',
+        () {
       final now = DateTime.now();
       final card = FlashCard(
         id: 'c1',
@@ -103,7 +104,9 @@ void main() {
       expect(rate, closeTo(2 / 3, 0.01));
     });
 
-    test('Scheduler graduates cards to mastered when interval reaches >= 21 days', () {
+    test(
+        'Scheduler graduates cards to mastered when interval reaches >= 21 days',
+        () {
       final now = DateTime.now();
       final matureCard = FlashCard(
         id: 'c1',

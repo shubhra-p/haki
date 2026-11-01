@@ -707,4 +707,3 @@ class _ThemeOptionTile extends StatelessWidget {
     );
   }
 }
-

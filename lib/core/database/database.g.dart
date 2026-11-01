@@ -2235,22 +2235,319 @@ typedef $$DeckTableTableUpdateCompanionBuilder = DeckTableCompanion Function({
   Value<int> rowid,
 });
 
+final class $$DeckTableTableReferences
+    extends BaseReferences<_$HakiDatabase, $DeckTableTable, DeckTableData> {
+  $$DeckTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$CardTableTable, List<CardTableData>>
+      _cardTableRefsTable(_$HakiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.cardTable,
+              aliasName: 'decks__id__cards__deck_id');
+
+  $$CardTableTableProcessedTableManager get cardTableRefs {
+    final manager = $$CardTableTableTableManager($_db, $_db.cardTable)
+        .filter((f) => f.deckId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_cardTableRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$ReviewEventTableTable, List<ReviewEventTableData>>
+      _reviewEventTableRefsTable(_$HakiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.reviewEventTable,
+              aliasName: 'decks__id__review_events__deck_id');
+
+  $$ReviewEventTableTableProcessedTableManager get reviewEventTableRefs {
+    final manager =
+        $$ReviewEventTableTableTableManager($_db, $_db.reviewEventTable)
+            .filter((f) => f.deckId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_reviewEventTableRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$StudySessionTableTable,
+      List<StudySessionTableData>> _studySessionTableRefsTable(
+          _$HakiDatabase db) =>
+      MultiTypedResultKey.fromTable(db.studySessionTable,
+          aliasName: 'decks__id__study_sessions__deck_id');
+
+  $$StudySessionTableTableProcessedTableManager get studySessionTableRefs {
+    final manager =
+        $$StudySessionTableTableTableManager($_db, $_db.studySessionTable)
+            .filter((f) => f.deckId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_studySessionTableRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$DeckTableTableFilterComposer
+    extends Composer<_$HakiDatabase, $DeckTableTable> {
+  $$DeckTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceLanguage => $composableBuilder(
+      column: $table.sourceLanguage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get targetLanguage => $composableBuilder(
+      column: $table.targetLanguage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get showReadingOnFront => $composableBuilder(
+      column: $table.showReadingOnFront,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastStudiedAt => $composableBuilder(
+      column: $table.lastStudiedAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> cardTableRefs(
+      Expression<bool> Function($$CardTableTableFilterComposer f) f) {
+    final $$CardTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.cardTable,
+        getReferencedColumn: (t) => t.deckId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CardTableTableFilterComposer(
+              $db: $db,
+              $table: $db.cardTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> reviewEventTableRefs(
+      Expression<bool> Function($$ReviewEventTableTableFilterComposer f) f) {
+    final $$ReviewEventTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.reviewEventTable,
+        getReferencedColumn: (t) => t.deckId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ReviewEventTableTableFilterComposer(
+              $db: $db,
+              $table: $db.reviewEventTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> studySessionTableRefs(
+      Expression<bool> Function($$StudySessionTableTableFilterComposer f) f) {
+    final $$StudySessionTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.studySessionTable,
+        getReferencedColumn: (t) => t.deckId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StudySessionTableTableFilterComposer(
+              $db: $db,
+              $table: $db.studySessionTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$DeckTableTableOrderingComposer
+    extends Composer<_$HakiDatabase, $DeckTableTable> {
+  $$DeckTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceLanguage => $composableBuilder(
+      column: $table.sourceLanguage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get targetLanguage => $composableBuilder(
+      column: $table.targetLanguage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get showReadingOnFront => $composableBuilder(
+      column: $table.showReadingOnFront,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastStudiedAt => $composableBuilder(
+      column: $table.lastStudiedAt,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$DeckTableTableAnnotationComposer
+    extends Composer<_$HakiDatabase, $DeckTableTable> {
+  $$DeckTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceLanguage => $composableBuilder(
+      column: $table.sourceLanguage, builder: (column) => column);
+
+  GeneratedColumn<String> get targetLanguage => $composableBuilder(
+      column: $table.targetLanguage, builder: (column) => column);
+
+  GeneratedColumn<bool> get showReadingOnFront => $composableBuilder(
+      column: $table.showReadingOnFront, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastStudiedAt => $composableBuilder(
+      column: $table.lastStudiedAt, builder: (column) => column);
+
+  Expression<T> cardTableRefs<T extends Object>(
+      Expression<T> Function($$CardTableTableAnnotationComposer a) f) {
+    final $$CardTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.cardTable,
+        getReferencedColumn: (t) => t.deckId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CardTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.cardTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> reviewEventTableRefs<T extends Object>(
+      Expression<T> Function($$ReviewEventTableTableAnnotationComposer a) f) {
+    final $$ReviewEventTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.reviewEventTable,
+        getReferencedColumn: (t) => t.deckId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ReviewEventTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.reviewEventTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> studySessionTableRefs<T extends Object>(
+      Expression<T> Function($$StudySessionTableTableAnnotationComposer a) f) {
+    final $$StudySessionTableTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.studySessionTable,
+            getReferencedColumn: (t) => t.deckId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$StudySessionTableTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.studySessionTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
 class $$DeckTableTableTableManager extends RootTableManager<
     _$HakiDatabase,
     $DeckTableTable,
     DeckTableData,
     $$DeckTableTableFilterComposer,
     $$DeckTableTableOrderingComposer,
+    $$DeckTableTableAnnotationComposer,
     $$DeckTableTableCreateCompanionBuilder,
-    $$DeckTableTableUpdateCompanionBuilder> {
+    $$DeckTableTableUpdateCompanionBuilder,
+    (DeckTableData, $$DeckTableTableReferences),
+    DeckTableData,
+    PrefetchHooks Function(
+        {bool cardTableRefs,
+        bool reviewEventTableRefs,
+        bool studySessionTableRefs})> {
   $$DeckTableTableTableManager(_$HakiDatabase db, $DeckTableTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          filteringComposer:
-              $$DeckTableTableFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $$DeckTableTableOrderingComposer(ComposerState(db, table)),
+          createFilteringComposer: () =>
+              $$DeckTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DeckTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DeckTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> name = const Value.absent(),
@@ -2295,141 +2592,90 @@ class $$DeckTableTableTableManager extends RootTableManager<
             lastStudiedAt: lastStudiedAt,
             rowid: rowid,
           ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$DeckTableTable, DeckTableData>(table),
+                    $$DeckTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {cardTableRefs = false,
+              reviewEventTableRefs = false,
+              studySessionTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (cardTableRefs) db.cardTable,
+                if (reviewEventTableRefs) db.reviewEventTable,
+                if (studySessionTableRefs) db.studySessionTable
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (cardTableRefs)
+                    await $_getPrefetchedDataByColumns<DeckTableData,
+                            $DeckTableTable, CardTableData, $CardTableTable>(
+                        currentTable: table,
+                        referencedTable:
+                            $$DeckTableTableReferences._cardTableRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$DeckTableTableReferences(db, table, p0)
+                                .cardTableRefs,
+                        currentColumn: 'id',
+                        referencedColumn: 'deck_id',
+                        typedResults: items),
+                  if (reviewEventTableRefs)
+                    await $_getPrefetchedDataByColumns<
+                            DeckTableData,
+                            $DeckTableTable,
+                            ReviewEventTableData,
+                            $ReviewEventTableTable>(
+                        currentTable: table,
+                        referencedTable: $$DeckTableTableReferences
+                            ._reviewEventTableRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$DeckTableTableReferences(db, table, p0)
+                                .reviewEventTableRefs,
+                        currentColumn: 'id',
+                        referencedColumn: 'deck_id',
+                        typedResults: items),
+                  if (studySessionTableRefs)
+                    await $_getPrefetchedDataByColumns<
+                            DeckTableData,
+                            $DeckTableTable,
+                            StudySessionTableData,
+                            $StudySessionTableTable>(
+                        currentTable: table,
+                        referencedTable: $$DeckTableTableReferences
+                            ._studySessionTableRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$DeckTableTableReferences(db, table, p0)
+                                .studySessionTableRefs,
+                        currentColumn: 'id',
+                        referencedColumn: 'deck_id',
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
-class $$DeckTableTableFilterComposer
-    extends FilterComposer<_$HakiDatabase, $DeckTableTable> {
-  $$DeckTableTableFilterComposer(super.$state);
-  ColumnFilters<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get sourceLanguage => $state.composableBuilder(
-      column: $state.table.sourceLanguage,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get targetLanguage => $state.composableBuilder(
-      column: $state.table.targetLanguage,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<bool> get showReadingOnFront => $state.composableBuilder(
-      column: $state.table.showReadingOnFront,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get updatedAt => $state.composableBuilder(
-      column: $state.table.updatedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get lastStudiedAt => $state.composableBuilder(
-      column: $state.table.lastStudiedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ComposableFilter cardTableRefs(
-      ComposableFilter Function($$CardTableTableFilterComposer f) f) {
-    final $$CardTableTableFilterComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $state.db.cardTable,
-        getReferencedColumn: (t) => t.deckId,
-        builder: (joinBuilder, parentComposers) =>
-            $$CardTableTableFilterComposer(ComposerState(
-                $state.db, $state.db.cardTable, joinBuilder, parentComposers)));
-    return f(composer);
-  }
-
-  ComposableFilter reviewEventTableRefs(
-      ComposableFilter Function($$ReviewEventTableTableFilterComposer f) f) {
-    final $$ReviewEventTableTableFilterComposer composer =
-        $state.composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $state.db.reviewEventTable,
-            getReferencedColumn: (t) => t.deckId,
-            builder: (joinBuilder, parentComposers) =>
-                $$ReviewEventTableTableFilterComposer(ComposerState($state.db,
-                    $state.db.reviewEventTable, joinBuilder, parentComposers)));
-    return f(composer);
-  }
-
-  ComposableFilter studySessionTableRefs(
-      ComposableFilter Function($$StudySessionTableTableFilterComposer f) f) {
-    final $$StudySessionTableTableFilterComposer composer =
-        $state.composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $state.db.studySessionTable,
-            getReferencedColumn: (t) => t.deckId,
-            builder: (joinBuilder, parentComposers) =>
-                $$StudySessionTableTableFilterComposer(ComposerState(
-                    $state.db,
-                    $state.db.studySessionTable,
-                    joinBuilder,
-                    parentComposers)));
-    return f(composer);
-  }
-}
-
-class $$DeckTableTableOrderingComposer
-    extends OrderingComposer<_$HakiDatabase, $DeckTableTable> {
-  $$DeckTableTableOrderingComposer(super.$state);
-  ColumnOrderings<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get sourceLanguage => $state.composableBuilder(
-      column: $state.table.sourceLanguage,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get targetLanguage => $state.composableBuilder(
-      column: $state.table.targetLanguage,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<bool> get showReadingOnFront => $state.composableBuilder(
-      column: $state.table.showReadingOnFront,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get updatedAt => $state.composableBuilder(
-      column: $state.table.updatedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get lastStudiedAt => $state.composableBuilder(
-      column: $state.table.lastStudiedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
+typedef $$DeckTableTableProcessedTableManager = ProcessedTableManager<
+    _$HakiDatabase,
+    $DeckTableTable,
+    DeckTableData,
+    $$DeckTableTableFilterComposer,
+    $$DeckTableTableOrderingComposer,
+    $$DeckTableTableAnnotationComposer,
+    $$DeckTableTableCreateCompanionBuilder,
+    $$DeckTableTableUpdateCompanionBuilder,
+    (DeckTableData, $$DeckTableTableReferences),
+    DeckTableData,
+    PrefetchHooks Function(
+        {bool cardTableRefs,
+        bool reviewEventTableRefs,
+        bool studySessionTableRefs})>;
 typedef $$CardTableTableCreateCompanionBuilder = CardTableCompanion Function({
   required String id,
   required String deckId,
@@ -2469,22 +2715,340 @@ typedef $$CardTableTableUpdateCompanionBuilder = CardTableCompanion Function({
   Value<int> rowid,
 });
 
+final class $$CardTableTableReferences
+    extends BaseReferences<_$HakiDatabase, $CardTableTable, CardTableData> {
+  $$CardTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DeckTableTable _deckIdTable(_$HakiDatabase db) =>
+      db.deckTable.createAlias('cards__deck_id__decks__id');
+
+  $$DeckTableTableProcessedTableManager get deckId {
+    final $_column = $_itemColumn<String>('deck_id')!;
+
+    final manager = $$DeckTableTableTableManager($_db, $_db.deckTable)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_deckIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$ReviewEventTableTable, List<ReviewEventTableData>>
+      _reviewEventTableRefsTable(_$HakiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.reviewEventTable,
+              aliasName: 'cards__id__review_events__card_id');
+
+  $$ReviewEventTableTableProcessedTableManager get reviewEventTableRefs {
+    final manager =
+        $$ReviewEventTableTableTableManager($_db, $_db.reviewEventTable)
+            .filter((f) => f.cardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_reviewEventTableRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$CardTableTableFilterComposer
+    extends Composer<_$HakiDatabase, $CardTableTable> {
+  $$CardTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get word => $composableBuilder(
+      column: $table.word, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get meaning => $composableBuilder(
+      column: $table.meaning, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get transliteration => $composableBuilder(
+      column: $table.transliteration,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get pronunciation => $composableBuilder(
+      column: $table.pronunciation, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastReviewedAt => $composableBuilder(
+      column: $table.lastReviewedAt,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get reviewStatus => $composableBuilder(
+      column: $table.reviewStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get dueDate => $composableBuilder(
+      column: $table.dueDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get intervalDays => $composableBuilder(
+      column: $table.intervalDays, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get easeFactor => $composableBuilder(
+      column: $table.easeFactor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get reviewCount => $composableBuilder(
+      column: $table.reviewCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get correctCount => $composableBuilder(
+      column: $table.correctCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get incorrectCount => $composableBuilder(
+      column: $table.incorrectCount,
+      builder: (column) => ColumnFilters(column));
+
+  $$DeckTableTableFilterComposer get deckId {
+    final $$DeckTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableFilterComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> reviewEventTableRefs(
+      Expression<bool> Function($$ReviewEventTableTableFilterComposer f) f) {
+    final $$ReviewEventTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.reviewEventTable,
+        getReferencedColumn: (t) => t.cardId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ReviewEventTableTableFilterComposer(
+              $db: $db,
+              $table: $db.reviewEventTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$CardTableTableOrderingComposer
+    extends Composer<_$HakiDatabase, $CardTableTable> {
+  $$CardTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get word => $composableBuilder(
+      column: $table.word, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get meaning => $composableBuilder(
+      column: $table.meaning, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get transliteration => $composableBuilder(
+      column: $table.transliteration,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get pronunciation => $composableBuilder(
+      column: $table.pronunciation,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastReviewedAt => $composableBuilder(
+      column: $table.lastReviewedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get reviewStatus => $composableBuilder(
+      column: $table.reviewStatus,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get dueDate => $composableBuilder(
+      column: $table.dueDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get intervalDays => $composableBuilder(
+      column: $table.intervalDays,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get easeFactor => $composableBuilder(
+      column: $table.easeFactor, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get reviewCount => $composableBuilder(
+      column: $table.reviewCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get correctCount => $composableBuilder(
+      column: $table.correctCount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get incorrectCount => $composableBuilder(
+      column: $table.incorrectCount,
+      builder: (column) => ColumnOrderings(column));
+
+  $$DeckTableTableOrderingComposer get deckId {
+    final $$DeckTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$CardTableTableAnnotationComposer
+    extends Composer<_$HakiDatabase, $CardTableTable> {
+  $$CardTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get word =>
+      $composableBuilder(column: $table.word, builder: (column) => column);
+
+  GeneratedColumn<String> get meaning =>
+      $composableBuilder(column: $table.meaning, builder: (column) => column);
+
+  GeneratedColumn<String> get transliteration => $composableBuilder(
+      column: $table.transliteration, builder: (column) => column);
+
+  GeneratedColumn<String> get pronunciation => $composableBuilder(
+      column: $table.pronunciation, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastReviewedAt => $composableBuilder(
+      column: $table.lastReviewedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get reviewStatus => $composableBuilder(
+      column: $table.reviewStatus, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<int> get intervalDays => $composableBuilder(
+      column: $table.intervalDays, builder: (column) => column);
+
+  GeneratedColumn<double> get easeFactor => $composableBuilder(
+      column: $table.easeFactor, builder: (column) => column);
+
+  GeneratedColumn<int> get reviewCount => $composableBuilder(
+      column: $table.reviewCount, builder: (column) => column);
+
+  GeneratedColumn<int> get correctCount => $composableBuilder(
+      column: $table.correctCount, builder: (column) => column);
+
+  GeneratedColumn<int> get incorrectCount => $composableBuilder(
+      column: $table.incorrectCount, builder: (column) => column);
+
+  $$DeckTableTableAnnotationComposer get deckId {
+    final $$DeckTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> reviewEventTableRefs<T extends Object>(
+      Expression<T> Function($$ReviewEventTableTableAnnotationComposer a) f) {
+    final $$ReviewEventTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.reviewEventTable,
+        getReferencedColumn: (t) => t.cardId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ReviewEventTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.reviewEventTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
 class $$CardTableTableTableManager extends RootTableManager<
     _$HakiDatabase,
     $CardTableTable,
     CardTableData,
     $$CardTableTableFilterComposer,
     $$CardTableTableOrderingComposer,
+    $$CardTableTableAnnotationComposer,
     $$CardTableTableCreateCompanionBuilder,
-    $$CardTableTableUpdateCompanionBuilder> {
+    $$CardTableTableUpdateCompanionBuilder,
+    (CardTableData, $$CardTableTableReferences),
+    CardTableData,
+    PrefetchHooks Function({bool deckId, bool reviewEventTableRefs})> {
   $$CardTableTableTableManager(_$HakiDatabase db, $CardTableTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          filteringComposer:
-              $$CardTableTableFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $$CardTableTableOrderingComposer(ComposerState(db, table)),
+          createFilteringComposer: () =>
+              $$CardTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CardTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CardTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> deckId = const Value.absent(),
@@ -2561,205 +3125,81 @@ class $$CardTableTableTableManager extends RootTableManager<
             incorrectCount: incorrectCount,
             rowid: rowid,
           ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$CardTableTable, CardTableData>(table),
+                    $$CardTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {deckId = false, reviewEventTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (reviewEventTableRefs) db.reviewEventTable
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (deckId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.deckId,
+                    referencedTable:
+                        $$CardTableTableReferences._deckIdTable(db),
+                    referencedColumn:
+                        $$CardTableTableReferences._deckIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (reviewEventTableRefs)
+                    await $_getPrefetchedDataByColumns<
+                            CardTableData,
+                            $CardTableTable,
+                            ReviewEventTableData,
+                            $ReviewEventTableTable>(
+                        currentTable: table,
+                        referencedTable: $$CardTableTableReferences
+                            ._reviewEventTableRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CardTableTableReferences(db, table, p0)
+                                .reviewEventTableRefs,
+                        currentColumn: 'id',
+                        referencedColumn: 'card_id',
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
-class $$CardTableTableFilterComposer
-    extends FilterComposer<_$HakiDatabase, $CardTableTable> {
-  $$CardTableTableFilterComposer(super.$state);
-  ColumnFilters<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get word => $state.composableBuilder(
-      column: $state.table.word,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get meaning => $state.composableBuilder(
-      column: $state.table.meaning,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get transliteration => $state.composableBuilder(
-      column: $state.table.transliteration,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get pronunciation => $state.composableBuilder(
-      column: $state.table.pronunciation,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get updatedAt => $state.composableBuilder(
-      column: $state.table.updatedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get lastReviewedAt => $state.composableBuilder(
-      column: $state.table.lastReviewedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get reviewStatus => $state.composableBuilder(
-      column: $state.table.reviewStatus,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get dueDate => $state.composableBuilder(
-      column: $state.table.dueDate,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get intervalDays => $state.composableBuilder(
-      column: $state.table.intervalDays,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<double> get easeFactor => $state.composableBuilder(
-      column: $state.table.easeFactor,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get reviewCount => $state.composableBuilder(
-      column: $state.table.reviewCount,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get correctCount => $state.composableBuilder(
-      column: $state.table.correctCount,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get incorrectCount => $state.composableBuilder(
-      column: $state.table.incorrectCount,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  $$DeckTableTableFilterComposer get deckId {
-    final $$DeckTableTableFilterComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.deckId,
-        referencedTable: $state.db.deckTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$DeckTableTableFilterComposer(ComposerState(
-                $state.db, $state.db.deckTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-
-  ComposableFilter reviewEventTableRefs(
-      ComposableFilter Function($$ReviewEventTableTableFilterComposer f) f) {
-    final $$ReviewEventTableTableFilterComposer composer =
-        $state.composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $state.db.reviewEventTable,
-            getReferencedColumn: (t) => t.cardId,
-            builder: (joinBuilder, parentComposers) =>
-                $$ReviewEventTableTableFilterComposer(ComposerState($state.db,
-                    $state.db.reviewEventTable, joinBuilder, parentComposers)));
-    return f(composer);
-  }
-}
-
-class $$CardTableTableOrderingComposer
-    extends OrderingComposer<_$HakiDatabase, $CardTableTable> {
-  $$CardTableTableOrderingComposer(super.$state);
-  ColumnOrderings<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get word => $state.composableBuilder(
-      column: $state.table.word,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get meaning => $state.composableBuilder(
-      column: $state.table.meaning,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get transliteration => $state.composableBuilder(
-      column: $state.table.transliteration,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get pronunciation => $state.composableBuilder(
-      column: $state.table.pronunciation,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get updatedAt => $state.composableBuilder(
-      column: $state.table.updatedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get lastReviewedAt => $state.composableBuilder(
-      column: $state.table.lastReviewedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get reviewStatus => $state.composableBuilder(
-      column: $state.table.reviewStatus,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get dueDate => $state.composableBuilder(
-      column: $state.table.dueDate,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get intervalDays => $state.composableBuilder(
-      column: $state.table.intervalDays,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<double> get easeFactor => $state.composableBuilder(
-      column: $state.table.easeFactor,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get reviewCount => $state.composableBuilder(
-      column: $state.table.reviewCount,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get correctCount => $state.composableBuilder(
-      column: $state.table.correctCount,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get incorrectCount => $state.composableBuilder(
-      column: $state.table.incorrectCount,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  $$DeckTableTableOrderingComposer get deckId {
-    final $$DeckTableTableOrderingComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.deckId,
-        referencedTable: $state.db.deckTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$DeckTableTableOrderingComposer(ComposerState(
-                $state.db, $state.db.deckTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-}
-
+typedef $$CardTableTableProcessedTableManager = ProcessedTableManager<
+    _$HakiDatabase,
+    $CardTableTable,
+    CardTableData,
+    $$CardTableTableFilterComposer,
+    $$CardTableTableOrderingComposer,
+    $$CardTableTableAnnotationComposer,
+    $$CardTableTableCreateCompanionBuilder,
+    $$CardTableTableUpdateCompanionBuilder,
+    (CardTableData, $$CardTableTableReferences),
+    CardTableData,
+    PrefetchHooks Function({bool deckId, bool reviewEventTableRefs})>;
 typedef $$ReviewEventTableTableCreateCompanionBuilder
     = ReviewEventTableCompanion Function({
   required String id,
@@ -2789,23 +3229,294 @@ typedef $$ReviewEventTableTableUpdateCompanionBuilder
   Value<int> rowid,
 });
 
+final class $$ReviewEventTableTableReferences extends BaseReferences<
+    _$HakiDatabase, $ReviewEventTableTable, ReviewEventTableData> {
+  $$ReviewEventTableTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $CardTableTable _cardIdTable(_$HakiDatabase db) =>
+      db.cardTable.createAlias('review_events__card_id__cards__id');
+
+  $$CardTableTableProcessedTableManager get cardId {
+    final $_column = $_itemColumn<String>('card_id')!;
+
+    final manager = $$CardTableTableTableManager($_db, $_db.cardTable)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $DeckTableTable _deckIdTable(_$HakiDatabase db) =>
+      db.deckTable.createAlias('review_events__deck_id__decks__id');
+
+  $$DeckTableTableProcessedTableManager get deckId {
+    final $_column = $_itemColumn<String>('deck_id')!;
+
+    final manager = $$DeckTableTableTableManager($_db, $_db.deckTable)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_deckIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ReviewEventTableTableFilterComposer
+    extends Composer<_$HakiDatabase, $ReviewEventTableTable> {
+  $$ReviewEventTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get rating => $composableBuilder(
+      column: $table.rating, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get reviewedAt => $composableBuilder(
+      column: $table.reviewedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get previousIntervalDays => $composableBuilder(
+      column: $table.previousIntervalDays,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get newIntervalDays => $composableBuilder(
+      column: $table.newIntervalDays,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get previousEaseFactor => $composableBuilder(
+      column: $table.previousEaseFactor,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get newEaseFactor => $composableBuilder(
+      column: $table.newEaseFactor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get responseTimeMs => $composableBuilder(
+      column: $table.responseTimeMs,
+      builder: (column) => ColumnFilters(column));
+
+  $$CardTableTableFilterComposer get cardId {
+    final $$CardTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.cardId,
+        referencedTable: $db.cardTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CardTableTableFilterComposer(
+              $db: $db,
+              $table: $db.cardTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$DeckTableTableFilterComposer get deckId {
+    final $$DeckTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableFilterComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ReviewEventTableTableOrderingComposer
+    extends Composer<_$HakiDatabase, $ReviewEventTableTable> {
+  $$ReviewEventTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get rating => $composableBuilder(
+      column: $table.rating, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get reviewedAt => $composableBuilder(
+      column: $table.reviewedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get previousIntervalDays => $composableBuilder(
+      column: $table.previousIntervalDays,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get newIntervalDays => $composableBuilder(
+      column: $table.newIntervalDays,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get previousEaseFactor => $composableBuilder(
+      column: $table.previousEaseFactor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get newEaseFactor => $composableBuilder(
+      column: $table.newEaseFactor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get responseTimeMs => $composableBuilder(
+      column: $table.responseTimeMs,
+      builder: (column) => ColumnOrderings(column));
+
+  $$CardTableTableOrderingComposer get cardId {
+    final $$CardTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.cardId,
+        referencedTable: $db.cardTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CardTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.cardTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$DeckTableTableOrderingComposer get deckId {
+    final $$DeckTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ReviewEventTableTableAnnotationComposer
+    extends Composer<_$HakiDatabase, $ReviewEventTableTable> {
+  $$ReviewEventTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get reviewedAt => $composableBuilder(
+      column: $table.reviewedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get previousIntervalDays => $composableBuilder(
+      column: $table.previousIntervalDays, builder: (column) => column);
+
+  GeneratedColumn<int> get newIntervalDays => $composableBuilder(
+      column: $table.newIntervalDays, builder: (column) => column);
+
+  GeneratedColumn<double> get previousEaseFactor => $composableBuilder(
+      column: $table.previousEaseFactor, builder: (column) => column);
+
+  GeneratedColumn<double> get newEaseFactor => $composableBuilder(
+      column: $table.newEaseFactor, builder: (column) => column);
+
+  GeneratedColumn<int> get responseTimeMs => $composableBuilder(
+      column: $table.responseTimeMs, builder: (column) => column);
+
+  $$CardTableTableAnnotationComposer get cardId {
+    final $$CardTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.cardId,
+        referencedTable: $db.cardTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CardTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.cardTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$DeckTableTableAnnotationComposer get deckId {
+    final $$DeckTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
 class $$ReviewEventTableTableTableManager extends RootTableManager<
     _$HakiDatabase,
     $ReviewEventTableTable,
     ReviewEventTableData,
     $$ReviewEventTableTableFilterComposer,
     $$ReviewEventTableTableOrderingComposer,
+    $$ReviewEventTableTableAnnotationComposer,
     $$ReviewEventTableTableCreateCompanionBuilder,
-    $$ReviewEventTableTableUpdateCompanionBuilder> {
+    $$ReviewEventTableTableUpdateCompanionBuilder,
+    (ReviewEventTableData, $$ReviewEventTableTableReferences),
+    ReviewEventTableData,
+    PrefetchHooks Function({bool cardId, bool deckId})> {
   $$ReviewEventTableTableTableManager(
       _$HakiDatabase db, $ReviewEventTableTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          filteringComposer:
-              $$ReviewEventTableTableFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $$ReviewEventTableTableOrderingComposer(ComposerState(db, table)),
+          createFilteringComposer: () =>
+              $$ReviewEventTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReviewEventTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReviewEventTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> cardId = const Value.absent(),
@@ -2858,145 +3569,73 @@ class $$ReviewEventTableTableTableManager extends RootTableManager<
             responseTimeMs: responseTimeMs,
             rowid: rowid,
           ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$ReviewEventTableTable, ReviewEventTableData>(
+                        table),
+                    $$ReviewEventTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({cardId = false, deckId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (cardId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.cardId,
+                    referencedTable:
+                        $$ReviewEventTableTableReferences._cardIdTable(db),
+                    referencedColumn:
+                        $$ReviewEventTableTableReferences._cardIdTable(db).id,
+                  ) as T;
+                }
+                if (deckId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.deckId,
+                    referencedTable:
+                        $$ReviewEventTableTableReferences._deckIdTable(db),
+                    referencedColumn:
+                        $$ReviewEventTableTableReferences._deckIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ));
 }
 
-class $$ReviewEventTableTableFilterComposer
-    extends FilterComposer<_$HakiDatabase, $ReviewEventTableTable> {
-  $$ReviewEventTableTableFilterComposer(super.$state);
-  ColumnFilters<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get rating => $state.composableBuilder(
-      column: $state.table.rating,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get reviewedAt => $state.composableBuilder(
-      column: $state.table.reviewedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get previousIntervalDays => $state.composableBuilder(
-      column: $state.table.previousIntervalDays,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get newIntervalDays => $state.composableBuilder(
-      column: $state.table.newIntervalDays,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<double> get previousEaseFactor => $state.composableBuilder(
-      column: $state.table.previousEaseFactor,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<double> get newEaseFactor => $state.composableBuilder(
-      column: $state.table.newEaseFactor,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get responseTimeMs => $state.composableBuilder(
-      column: $state.table.responseTimeMs,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  $$CardTableTableFilterComposer get cardId {
-    final $$CardTableTableFilterComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.cardId,
-        referencedTable: $state.db.cardTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$CardTableTableFilterComposer(ComposerState(
-                $state.db, $state.db.cardTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-
-  $$DeckTableTableFilterComposer get deckId {
-    final $$DeckTableTableFilterComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.deckId,
-        referencedTable: $state.db.deckTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$DeckTableTableFilterComposer(ComposerState(
-                $state.db, $state.db.deckTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-}
-
-class $$ReviewEventTableTableOrderingComposer
-    extends OrderingComposer<_$HakiDatabase, $ReviewEventTableTable> {
-  $$ReviewEventTableTableOrderingComposer(super.$state);
-  ColumnOrderings<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get rating => $state.composableBuilder(
-      column: $state.table.rating,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get reviewedAt => $state.composableBuilder(
-      column: $state.table.reviewedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get previousIntervalDays => $state.composableBuilder(
-      column: $state.table.previousIntervalDays,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get newIntervalDays => $state.composableBuilder(
-      column: $state.table.newIntervalDays,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<double> get previousEaseFactor => $state.composableBuilder(
-      column: $state.table.previousEaseFactor,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<double> get newEaseFactor => $state.composableBuilder(
-      column: $state.table.newEaseFactor,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get responseTimeMs => $state.composableBuilder(
-      column: $state.table.responseTimeMs,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  $$CardTableTableOrderingComposer get cardId {
-    final $$CardTableTableOrderingComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.cardId,
-        referencedTable: $state.db.cardTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$CardTableTableOrderingComposer(ComposerState(
-                $state.db, $state.db.cardTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-
-  $$DeckTableTableOrderingComposer get deckId {
-    final $$DeckTableTableOrderingComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.deckId,
-        referencedTable: $state.db.deckTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$DeckTableTableOrderingComposer(ComposerState(
-                $state.db, $state.db.deckTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-}
-
+typedef $$ReviewEventTableTableProcessedTableManager = ProcessedTableManager<
+    _$HakiDatabase,
+    $ReviewEventTableTable,
+    ReviewEventTableData,
+    $$ReviewEventTableTableFilterComposer,
+    $$ReviewEventTableTableOrderingComposer,
+    $$ReviewEventTableTableAnnotationComposer,
+    $$ReviewEventTableTableCreateCompanionBuilder,
+    $$ReviewEventTableTableUpdateCompanionBuilder,
+    (ReviewEventTableData, $$ReviewEventTableTableReferences),
+    ReviewEventTableData,
+    PrefetchHooks Function({bool cardId, bool deckId})>;
 typedef $$StudySessionTableTableCreateCompanionBuilder
     = StudySessionTableCompanion Function({
   required String id,
@@ -3020,23 +3659,198 @@ typedef $$StudySessionTableTableUpdateCompanionBuilder
   Value<int> rowid,
 });
 
+final class $$StudySessionTableTableReferences extends BaseReferences<
+    _$HakiDatabase, $StudySessionTableTable, StudySessionTableData> {
+  $$StudySessionTableTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $DeckTableTable _deckIdTable(_$HakiDatabase db) =>
+      db.deckTable.createAlias('study_sessions__deck_id__decks__id');
+
+  $$DeckTableTableProcessedTableManager get deckId {
+    final $_column = $_itemColumn<String>('deck_id')!;
+
+    final manager = $$DeckTableTableTableManager($_db, $_db.deckTable)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_deckIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$StudySessionTableTableFilterComposer
+    extends Composer<_$HakiDatabase, $StudySessionTableTable> {
+  $$StudySessionTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+      column: $table.startedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endedAt => $composableBuilder(
+      column: $table.endedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get cardsStudied => $composableBuilder(
+      column: $table.cardsStudied, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get correctCount => $composableBuilder(
+      column: $table.correctCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get incorrectCount => $composableBuilder(
+      column: $table.incorrectCount,
+      builder: (column) => ColumnFilters(column));
+
+  $$DeckTableTableFilterComposer get deckId {
+    final $$DeckTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableFilterComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$StudySessionTableTableOrderingComposer
+    extends Composer<_$HakiDatabase, $StudySessionTableTable> {
+  $$StudySessionTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+      column: $table.startedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
+      column: $table.endedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get cardsStudied => $composableBuilder(
+      column: $table.cardsStudied,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get correctCount => $composableBuilder(
+      column: $table.correctCount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get incorrectCount => $composableBuilder(
+      column: $table.incorrectCount,
+      builder: (column) => ColumnOrderings(column));
+
+  $$DeckTableTableOrderingComposer get deckId {
+    final $$DeckTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$StudySessionTableTableAnnotationComposer
+    extends Composer<_$HakiDatabase, $StudySessionTableTable> {
+  $$StudySessionTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endedAt =>
+      $composableBuilder(column: $table.endedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get cardsStudied => $composableBuilder(
+      column: $table.cardsStudied, builder: (column) => column);
+
+  GeneratedColumn<int> get correctCount => $composableBuilder(
+      column: $table.correctCount, builder: (column) => column);
+
+  GeneratedColumn<int> get incorrectCount => $composableBuilder(
+      column: $table.incorrectCount, builder: (column) => column);
+
+  $$DeckTableTableAnnotationComposer get deckId {
+    final $$DeckTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.deckId,
+        referencedTable: $db.deckTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DeckTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.deckTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
 class $$StudySessionTableTableTableManager extends RootTableManager<
     _$HakiDatabase,
     $StudySessionTableTable,
     StudySessionTableData,
     $$StudySessionTableTableFilterComposer,
     $$StudySessionTableTableOrderingComposer,
+    $$StudySessionTableTableAnnotationComposer,
     $$StudySessionTableTableCreateCompanionBuilder,
-    $$StudySessionTableTableUpdateCompanionBuilder> {
+    $$StudySessionTableTableUpdateCompanionBuilder,
+    (StudySessionTableData, $$StudySessionTableTableReferences),
+    StudySessionTableData,
+    PrefetchHooks Function({bool deckId})> {
   $$StudySessionTableTableTableManager(
       _$HakiDatabase db, $StudySessionTableTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          filteringComposer:
-              $$StudySessionTableTableFilterComposer(ComposerState(db, table)),
-          orderingComposer: $$StudySessionTableTableOrderingComposer(
-              ComposerState(db, table)),
+          createFilteringComposer: () =>
+              $$StudySessionTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StudySessionTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StudySessionTableTableAnnotationComposer(
+                  $db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> deckId = const Value.absent(),
@@ -3077,100 +3891,63 @@ class $$StudySessionTableTableTableManager extends RootTableManager<
             incorrectCount: incorrectCount,
             rowid: rowid,
           ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$StudySessionTableTable, StudySessionTableData>(
+                        table),
+                    $$StudySessionTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({deckId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (deckId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.deckId,
+                    referencedTable:
+                        $$StudySessionTableTableReferences._deckIdTable(db),
+                    referencedColumn:
+                        $$StudySessionTableTableReferences._deckIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ));
 }
 
-class $$StudySessionTableTableFilterComposer
-    extends FilterComposer<_$HakiDatabase, $StudySessionTableTable> {
-  $$StudySessionTableTableFilterComposer(super.$state);
-  ColumnFilters<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get startedAt => $state.composableBuilder(
-      column: $state.table.startedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get endedAt => $state.composableBuilder(
-      column: $state.table.endedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get cardsStudied => $state.composableBuilder(
-      column: $state.table.cardsStudied,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get correctCount => $state.composableBuilder(
-      column: $state.table.correctCount,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get incorrectCount => $state.composableBuilder(
-      column: $state.table.incorrectCount,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  $$DeckTableTableFilterComposer get deckId {
-    final $$DeckTableTableFilterComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.deckId,
-        referencedTable: $state.db.deckTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$DeckTableTableFilterComposer(ComposerState(
-                $state.db, $state.db.deckTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-}
-
-class $$StudySessionTableTableOrderingComposer
-    extends OrderingComposer<_$HakiDatabase, $StudySessionTableTable> {
-  $$StudySessionTableTableOrderingComposer(super.$state);
-  ColumnOrderings<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get startedAt => $state.composableBuilder(
-      column: $state.table.startedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get endedAt => $state.composableBuilder(
-      column: $state.table.endedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get cardsStudied => $state.composableBuilder(
-      column: $state.table.cardsStudied,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get correctCount => $state.composableBuilder(
-      column: $state.table.correctCount,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get incorrectCount => $state.composableBuilder(
-      column: $state.table.incorrectCount,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  $$DeckTableTableOrderingComposer get deckId {
-    final $$DeckTableTableOrderingComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.deckId,
-        referencedTable: $state.db.deckTable,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$DeckTableTableOrderingComposer(ComposerState(
-                $state.db, $state.db.deckTable, joinBuilder, parentComposers)));
-    return composer;
-  }
-}
+typedef $$StudySessionTableTableProcessedTableManager = ProcessedTableManager<
+    _$HakiDatabase,
+    $StudySessionTableTable,
+    StudySessionTableData,
+    $$StudySessionTableTableFilterComposer,
+    $$StudySessionTableTableOrderingComposer,
+    $$StudySessionTableTableAnnotationComposer,
+    $$StudySessionTableTableCreateCompanionBuilder,
+    $$StudySessionTableTableUpdateCompanionBuilder,
+    (StudySessionTableData, $$StudySessionTableTableReferences),
+    StudySessionTableData,
+    PrefetchHooks Function({bool deckId})>;
 
 class $HakiDatabaseManager {
   final _$HakiDatabase _db;

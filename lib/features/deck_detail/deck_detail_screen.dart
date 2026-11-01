@@ -139,8 +139,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
               style: HakiTypography.bodyMd,
               decoration: InputDecoration(
                 hintText: 'Search cards...',
-                prefixIcon:
-                    Icon(Icons.search, color: HakiColors.textDisabled),
+                prefixIcon: Icon(Icons.search, color: HakiColors.textDisabled),
                 isDense: true,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -413,9 +412,11 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
     final deckName = deck?.name ?? 'deck';
 
     try {
-      await Share.share(
-        csvContent,
-        subject: '$deckName Export.csv',
+      await SharePlus.instance.share(
+        ShareParams(
+          text: csvContent,
+          subject: '$deckName Export.csv',
+        ),
       );
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: csvContent));
@@ -551,8 +552,8 @@ class _DeckStatsHeader extends StatelessWidget {
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: HakiColors.surfaceContainerHigh,
                       minimumSize: const Size(0, 40),
-                      textStyle: HakiTypography.labelMd
-                          .copyWith(color: Colors.white),
+                      textStyle:
+                          HakiTypography.labelMd.copyWith(color: Colors.white),
                     ),
                   ),
                 ),

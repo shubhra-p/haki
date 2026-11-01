@@ -23,6 +23,7 @@ class DeckLibraryScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<DeckLibraryScreen> createState() => _DeckLibraryScreenState();
 }
+
 class _DeckLibraryScreenState extends ConsumerState<DeckLibraryScreen> {
   late final TextEditingController _searchController;
 
@@ -620,7 +621,11 @@ class _DeckCard extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: onStudy,
-                  icon: const Icon(Icons.play_arrow, size: 16, color: Colors.white),
+                  icon: const Icon(
+                    Icons.play_arrow,
+                    size: 16,
+                    color: Colors.white,
+                  ),
                   label: const Text('Study Now'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: HakiColors.isDarkMode
@@ -628,7 +633,8 @@ class _DeckCard extends StatelessWidget {
                         : HakiColors.primary,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(0, 40),
-                    textStyle: HakiTypography.labelMd.copyWith(color: Colors.white),
+                    textStyle:
+                        HakiTypography.labelMd.copyWith(color: Colors.white),
                   ),
                 ),
               ),
@@ -839,4 +845,3 @@ class _CreateDeckSheetState extends State<_CreateDeckSheet> {
     );
   }
 }
-

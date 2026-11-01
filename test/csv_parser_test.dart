@@ -100,14 +100,21 @@ estrenar,to use for the first time''';
       expect(reparse.rows[0].meaning, equals('espresso, "black"'));
     });
 
-    test('decodeBytes correctly decodes UTF-8 multi-byte Japanese and IPA symbols', () {
+    test(
+        'decodeBytes correctly decodes UTF-8 multi-byte Japanese and IPA symbols',
+        () {
       final rawUtf8 = utf8.encode('約束,A promise,やくそく,[ja.kɯ̟ᵝ.so̞.kɯ̟ᵝ]');
       final decoded = CsvParser.decodeBytes(rawUtf8);
       expect(decoded, equals('約束,A promise,やくそく,[ja.kɯ̟ᵝ.so̞.kɯ̟ᵝ]'));
     });
 
     test('decodeBytes strips UTF-8 Byte Order Mark (BOM)', () {
-      final bomBytes = [0xEF, 0xBB, 0xBF, ...utf8.encode('word,meaning\n木漏れ日,sunlight')];
+      final bomBytes = [
+        0xEF,
+        0xBB,
+        0xBF,
+        ...utf8.encode('word,meaning\n木漏れ日,sunlight'),
+      ];
       final decoded = CsvParser.decodeBytes(bomBytes);
       expect(decoded.startsWith('word,meaning'), isTrue);
       expect(decoded, contains('木漏れ日'));

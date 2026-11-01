@@ -60,8 +60,21 @@ final deckByIdProvider = StreamProvider.family<Deck?, String>((ref, id) {
   return ref.watch(deckDaoProvider).watchDeckById(id);
 });
 
+/// Search query notifier for deck filtering
+class DeckSearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+
+  @override
+  set state(String value) => super.state = value;
+  void setQuery(String value) => state = value;
+}
+
 /// Search query for deck filtering
-final deckSearchQueryProvider = StateProvider<String>((ref) => '');
+final deckSearchQueryProvider =
+    NotifierProvider<DeckSearchQueryNotifier, String>(
+  DeckSearchQueryNotifier.new,
+);
 
 /// Filtered decks based on search query
 final filteredDecksProvider = Provider<AsyncValue<List<Deck>>>((ref) {
@@ -155,10 +168,12 @@ final needsAttentionCardsProvider = FutureProvider<List<FlashCard>>((ref) {
 // Theme Mode Provider
 
 /// Manages and persists application theme mode (System, Light, Dark).
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  ThemeModeNotifier() : super(ThemeMode.system) {
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
     _syncHakiColors(ThemeMode.system);
     _loadSavedTheme();
+    return ThemeMode.system;
   }
 
   static void _syncHakiColors(ThemeMode mode) {
@@ -233,6 +248,4 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
 /// Theme Mode Provider
 final themeModeProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  return ThemeModeNotifier();
-});
+    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);

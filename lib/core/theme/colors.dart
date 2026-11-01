@@ -65,7 +65,8 @@ class HakiColors {
   // Raw Dark Palette Constants (Obsidian Indigo)
   static const Color darkPrimary = Color(0xFF818CF8); // Radiant indigo accent
   static const Color darkPrimaryDark = Color(0xFF4F46E5);
-  static const Color darkOnPrimary = Color(0xFFFFFFFF); // Crisp white text on primary buttons
+  static const Color darkOnPrimary =
+      Color(0xFFFFFFFF); // Crisp white text on primary buttons
   static const Color darkPrimaryContainer = Color(0xFF262354);
   static const Color darkOnPrimaryContainer = Color(0xFFC7D2FE);
   static const Color darkInversePrimary = Color(0xFF1E1B4B);
@@ -82,13 +83,15 @@ class HakiColors {
   static const Color darkSurfaceContainerHigh = Color(0xFF252347);
   static const Color darkSurfaceContainerHighest = Color(0xFF2C2954);
 
-  static const Color darkCardBackground = Color(0xFF191832); // Elevated dark card
+  static const Color darkCardBackground =
+      Color(0xFF191832); // Elevated dark card
   static const Color darkCardBorder = Color(0xFF2A274E); // Crisp subtle border
 
   static const Color darkTextPrimary = Color(0xFFF8FAFC);
   static const Color darkTextSecondary = Color(0xFF94A3B8);
   static const Color darkTextDisabled = Color(0xFF64748B);
-  static const Color darkTextInverse = Color(0xFFFFFFFF); // Pure white on inverted/colored surfaces
+  static const Color darkTextInverse =
+      Color(0xFFFFFFFF); // Pure white on inverted/colored surfaces
 
   static const Color darkOnSurface = Color(0xFFF8FAFC);
   static const Color darkOnSurfaceVariant = Color(0xFFCBD5E1);
@@ -177,8 +180,7 @@ class HakiColors {
 
   static Color get cardBackground =>
       _isDarkMode ? darkCardBackground : lightCardBackground;
-  static Color get cardBorder =>
-      _isDarkMode ? darkCardBorder : lightCardBorder;
+  static Color get cardBorder => _isDarkMode ? darkCardBorder : lightCardBorder;
 
   static Color get textPrimary =>
       _isDarkMode ? darkTextPrimary : lightTextPrimary;
@@ -211,8 +213,7 @@ class HakiColors {
   static Color get emeraldBorder =>
       _isDarkMode ? darkEmeraldBorder : lightEmeraldBorder;
   static Color get roseTint => _isDarkMode ? darkRoseTint : lightRoseTint;
-  static Color get roseBorder =>
-      _isDarkMode ? darkRoseBorder : lightRoseBorder;
+  static Color get roseBorder => _isDarkMode ? darkRoseBorder : lightRoseBorder;
 
   // ─── Functional Helpers ────────────────────────────────────────────
   /// Streak pill background

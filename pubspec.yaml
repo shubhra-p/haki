@@ -9,48 +9,44 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
 
   # State Management
-  flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
+  flutter_riverpod: ^2.6.1
 
-  # Database
-  drift: ^2.16.0
-  sqlite3_flutter_libs: ^0.5.21
-  path_provider: ^2.1.3
-  path: ^1.9.0
+  # Database & Persistence
+  drift: ^2.31.0
+  sqlite3_flutter_libs: ^0.5.42
+  path_provider: ^2.1.5
+  path: ^1.9.1
 
   # Navigation
-  go_router: ^14.2.0
+  go_router: ^18.1.2
 
-  # CSV
-  csv: ^6.0.0
-  file_picker: ^8.0.3
+  # File & CSV Processing
+  csv: ^8.0.0
+  file_picker: ^13.3.0
 
   # Typography
-  google_fonts: ^6.2.1
+  google_fonts: ^9.0.0
 
   # Charts
-  fl_chart: ^0.68.0
+  fl_chart: ^1.3.0
 
   # Utilities
-  intl: ^0.19.0
-  uuid: ^4.4.0
-  share_plus: ^9.0.0
-  collection: ^1.18.0
+  intl: ^0.20.2
+  uuid: ^4.6.0
+  share_plus: ^13.3.1
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
-  drift_dev: ^2.16.0
-  build_runner: ^2.4.9
-  riverpod_generator: ^2.4.0
-  custom_lint: ^0.6.4
-  riverpod_lint: ^2.3.10
-  mocktail: ^1.0.3
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.31.0
+  build_runner: ^2.15.1
+  mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.14.3
 
 flutter_launcher_icons:
   android: true
@@ -64,4 +60,3 @@ flutter:
 
   assets:
     - assets/samples/
-

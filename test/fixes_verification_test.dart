@@ -385,12 +385,14 @@ void main() {
         expect(
           meaningPos < pronunciationPos,
           isTrue,
-          reason: 'Meaning must appear directly below character/word, before pronunciation on card back',
+          reason:
+              'Meaning must appear directly below character/word, before pronunciation on card back',
         );
         expect(
           pronunciationPos < transliterationPos,
           isTrue,
-          reason: 'Pronunciation must appear before transliteration/reading on card back',
+          reason:
+              'Pronunciation must appear before transliteration/reading on card back',
         );
 
         await tester.pumpWidget(const SizedBox());
@@ -456,7 +458,8 @@ void main() {
 
         final longNamedDeck = Deck(
           id: 'deck-long-name',
-          name: 'Japanese Advanced JLPT N1 Comprehensive Master Vocabulary Deck With Very Long Title',
+          name:
+              'Japanese Advanced JLPT N1 Comprehensive Master Vocabulary Deck With Very Long Title',
           sourceLanguage: 'Japanese',
           targetLanguage: 'English',
           showReadingOnFront: true,
@@ -523,7 +526,8 @@ void main() {
           deckId: 'deck-10',
           word: 'Supercalifragilisticexpialidocious',
           pronunciation: 'soo-per-kal-uh-fraj-uh-lis-tik-ek-spee-al-i-doh-shus',
-          meaning: 'Extraordinarily good; wonderful with extremely long explanation',
+          meaning:
+              'Extraordinarily good; wonderful with extremely long explanation',
           intervalDays: 1,
           easeFactor: 1.3,
           incorrectCount: 5,
@@ -744,7 +748,9 @@ void main() {
       expect(container.read(themeModeProvider) != ThemeMode.system, isTrue);
     });
 
-    test('HakiColors darkOnPrimary and darkTextInverse provide high contrast white text', () {
+    test(
+        'HakiColors darkOnPrimary and darkTextInverse provide high contrast white text',
+        () {
       HakiColors.setDarkMode(true);
       expect(HakiColors.textInverse, equals(Colors.white));
       expect(HakiColors.onPrimary, equals(Colors.white));
@@ -808,6 +814,3 @@ void main() {
     });
   });
 }
-
-
-

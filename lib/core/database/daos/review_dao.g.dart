@@ -10,4 +10,20 @@ mixin _$ReviewDaoMixin on DatabaseAccessor<HakiDatabase> {
       attachedDatabase.reviewEventTable;
   $StudySessionTableTable get studySessionTable =>
       attachedDatabase.studySessionTable;
+  ReviewDaoManager get managers => ReviewDaoManager(this);
+}
+
+class ReviewDaoManager {
+  final _$ReviewDaoMixin _db;
+  ReviewDaoManager(this._db);
+  $$DeckTableTableTableManager get deckTable =>
+      $$DeckTableTableTableManager(_db.attachedDatabase, _db.deckTable);
+  $$CardTableTableTableManager get cardTable =>
+      $$CardTableTableTableManager(_db.attachedDatabase, _db.cardTable);
+  $$ReviewEventTableTableTableManager get reviewEventTable =>
+      $$ReviewEventTableTableTableManager(
+          _db.attachedDatabase, _db.reviewEventTable);
+  $$StudySessionTableTableTableManager get studySessionTable =>
+      $$StudySessionTableTableTableManager(
+          _db.attachedDatabase, _db.studySessionTable);
 }

@@ -56,21 +56,36 @@ class HakiTheme {
 
       // Text theme with full international font fallbacks
       textTheme: TextTheme(
-        displayLarge: HakiTypography.headlineXl.copyWith(color: HakiColors.lightTextPrimary),
-        displayMedium: HakiTypography.headlineLg.copyWith(color: HakiColors.lightTextPrimary),
-        displaySmall: HakiTypography.headlineMd.copyWith(color: HakiColors.lightTextPrimary),
-        headlineLarge: HakiTypography.headlineLg.copyWith(color: HakiColors.lightTextPrimary),
-        headlineMedium: HakiTypography.headlineMd.copyWith(color: HakiColors.lightTextPrimary),
-        headlineSmall: HakiTypography.headlineSm.copyWith(color: HakiColors.lightTextPrimary),
-        titleLarge: HakiTypography.headlineSm.copyWith(color: HakiColors.lightTextPrimary),
-        titleMedium: HakiTypography.bodyLg.copyWith(color: HakiColors.lightTextPrimary),
-        titleSmall: HakiTypography.bodyMd.copyWith(color: HakiColors.lightTextPrimary),
-        bodyLarge: HakiTypography.bodyLg.copyWith(color: HakiColors.lightTextPrimary),
-        bodyMedium: HakiTypography.bodyMd.copyWith(color: HakiColors.lightTextPrimary),
-        bodySmall: HakiTypography.bodySm.copyWith(color: HakiColors.lightTextSecondary),
-        labelLarge: HakiTypography.labelLg.copyWith(color: HakiColors.lightTextPrimary),
-        labelMedium: HakiTypography.labelMd.copyWith(color: HakiColors.lightTextSecondary),
-        labelSmall: HakiTypography.labelSm.copyWith(color: HakiColors.lightTextSecondary),
+        displayLarge: HakiTypography.headlineXl
+            .copyWith(color: HakiColors.lightTextPrimary),
+        displayMedium: HakiTypography.headlineLg
+            .copyWith(color: HakiColors.lightTextPrimary),
+        displaySmall: HakiTypography.headlineMd
+            .copyWith(color: HakiColors.lightTextPrimary),
+        headlineLarge: HakiTypography.headlineLg
+            .copyWith(color: HakiColors.lightTextPrimary),
+        headlineMedium: HakiTypography.headlineMd
+            .copyWith(color: HakiColors.lightTextPrimary),
+        headlineSmall: HakiTypography.headlineSm
+            .copyWith(color: HakiColors.lightTextPrimary),
+        titleLarge: HakiTypography.headlineSm
+            .copyWith(color: HakiColors.lightTextPrimary),
+        titleMedium:
+            HakiTypography.bodyLg.copyWith(color: HakiColors.lightTextPrimary),
+        titleSmall:
+            HakiTypography.bodyMd.copyWith(color: HakiColors.lightTextPrimary),
+        bodyLarge:
+            HakiTypography.bodyLg.copyWith(color: HakiColors.lightTextPrimary),
+        bodyMedium:
+            HakiTypography.bodyMd.copyWith(color: HakiColors.lightTextPrimary),
+        bodySmall: HakiTypography.bodySm
+            .copyWith(color: HakiColors.lightTextSecondary),
+        labelLarge:
+            HakiTypography.labelLg.copyWith(color: HakiColors.lightTextPrimary),
+        labelMedium: HakiTypography.labelMd
+            .copyWith(color: HakiColors.lightTextSecondary),
+        labelSmall: HakiTypography.labelSm
+            .copyWith(color: HakiColors.lightTextSecondary),
       ),
 
       // App Bar
@@ -142,7 +157,8 @@ class HakiTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: HakiColors.lightPrimary,
-          side: const BorderSide(color: HakiColors.lightInputBorder, width: 1.5),
+          side:
+              const BorderSide(color: HakiColors.lightInputBorder, width: 1.5),
           minimumSize: const Size(64, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(9999),
@@ -243,7 +259,8 @@ class HakiTheme {
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: HakiColors.lightSurfaceContainerLow,
-        labelStyle: HakiTypography.labelMd.copyWith(color: HakiColors.lightTextPrimary),
+        labelStyle:
+            HakiTypography.labelMd.copyWith(color: HakiColors.lightTextPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(9999),
         ),
@@ -350,21 +367,36 @@ class HakiTheme {
 
       // Text theme with full international font fallbacks
       textTheme: TextTheme(
-        displayLarge: HakiTypography.headlineXl.copyWith(color: HakiColors.darkTextPrimary),
-        displayMedium: HakiTypography.headlineLg.copyWith(color: HakiColors.darkTextPrimary),
-        displaySmall: HakiTypography.headlineMd.copyWith(color: HakiColors.darkTextPrimary),
-        headlineLarge: HakiTypography.headlineLg.copyWith(color: HakiColors.darkTextPrimary),
-        headlineMedium: HakiTypography.headlineMd.copyWith(color: HakiColors.darkTextPrimary),
-        headlineSmall: HakiTypography.headlineSm.copyWith(color: HakiColors.darkTextPrimary),
-        titleLarge: HakiTypography.headlineSm.copyWith(color: HakiColors.darkTextPrimary),
-        titleMedium: HakiTypography.bodyLg.copyWith(color: HakiColors.darkTextPrimary),
-        titleSmall: HakiTypography.bodyMd.copyWith(color: HakiColors.darkTextPrimary),
-        bodyLarge: HakiTypography.bodyLg.copyWith(color: HakiColors.darkTextPrimary),
-        bodyMedium: HakiTypography.bodyMd.copyWith(color: HakiColors.darkTextPrimary),
-        bodySmall: HakiTypography.bodySm.copyWith(color: HakiColors.darkTextSecondary),
-        labelLarge: HakiTypography.labelLg.copyWith(color: HakiColors.darkTextPrimary),
-        labelMedium: HakiTypography.labelMd.copyWith(color: HakiColors.darkTextSecondary),
-        labelSmall: HakiTypography.labelSm.copyWith(color: HakiColors.darkTextSecondary),
+        displayLarge: HakiTypography.headlineXl
+            .copyWith(color: HakiColors.darkTextPrimary),
+        displayMedium: HakiTypography.headlineLg
+            .copyWith(color: HakiColors.darkTextPrimary),
+        displaySmall: HakiTypography.headlineMd
+            .copyWith(color: HakiColors.darkTextPrimary),
+        headlineLarge: HakiTypography.headlineLg
+            .copyWith(color: HakiColors.darkTextPrimary),
+        headlineMedium: HakiTypography.headlineMd
+            .copyWith(color: HakiColors.darkTextPrimary),
+        headlineSmall: HakiTypography.headlineSm
+            .copyWith(color: HakiColors.darkTextPrimary),
+        titleLarge: HakiTypography.headlineSm
+            .copyWith(color: HakiColors.darkTextPrimary),
+        titleMedium:
+            HakiTypography.bodyLg.copyWith(color: HakiColors.darkTextPrimary),
+        titleSmall:
+            HakiTypography.bodyMd.copyWith(color: HakiColors.darkTextPrimary),
+        bodyLarge:
+            HakiTypography.bodyLg.copyWith(color: HakiColors.darkTextPrimary),
+        bodyMedium:
+            HakiTypography.bodyMd.copyWith(color: HakiColors.darkTextPrimary),
+        bodySmall:
+            HakiTypography.bodySm.copyWith(color: HakiColors.darkTextSecondary),
+        labelLarge:
+            HakiTypography.labelLg.copyWith(color: HakiColors.darkTextPrimary),
+        labelMedium: HakiTypography.labelMd
+            .copyWith(color: HakiColors.darkTextSecondary),
+        labelSmall: HakiTypography.labelSm
+            .copyWith(color: HakiColors.darkTextSecondary),
       ),
 
       // App Bar
@@ -546,7 +578,8 @@ class HakiTheme {
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: HakiColors.darkSurfaceContainerLow,
-        labelStyle: HakiTypography.labelMd.copyWith(color: HakiColors.darkTextPrimary),
+        labelStyle:
+            HakiTypography.labelMd.copyWith(color: HakiColors.darkTextPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(9999),
         ),

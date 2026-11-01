@@ -281,70 +281,70 @@ class InsightsScreen extends ConsumerWidget {
                         : null,
                   ),
                   child: Column(
-                  children: [
-                    Text(
-                      dayNames[index],
-                      style: HakiTypography.labelSm.copyWith(
-                        color:
-                            isToday ? Colors.white : HakiColors.textSecondary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    if (isToday)
-                      Icon(
-                        studied
-                            ? Icons.local_fire_department
-                            : Icons.circle_outlined,
-                        size: 18,
-                        color: HakiColors.secondary,
-                      )
-                    else if (isFuture)
-                      Icon(
-                        Icons.lock_outline,
-                        size: 16,
-                        color: HakiColors.textDisabled,
-                      )
-                    else if (studied)
-                      Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: HakiColors.roseTint,
-                          shape: BoxShape.circle,
+                    children: [
+                      Text(
+                        dayNames[index],
+                        style: HakiTypography.labelSm.copyWith(
+                          color:
+                              isToday ? Colors.white : HakiColors.textSecondary,
+                          fontWeight: FontWeight.bold,
                         ),
-                        child: const Icon(
-                          Icons.check,
-                          size: 12,
+                      ),
+                      const SizedBox(height: 6),
+                      if (isToday)
+                        Icon(
+                          studied
+                              ? Icons.local_fire_department
+                              : Icons.circle_outlined,
+                          size: 18,
                           color: HakiColors.secondary,
+                        )
+                      else if (isFuture)
+                        Icon(
+                          Icons.lock_outline,
+                          size: 16,
+                          color: HakiColors.textDisabled,
+                        )
+                      else if (studied)
+                        Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: HakiColors.roseTint,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            size: 12,
+                            color: HakiColors.secondary,
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.remove,
+                          size: 16,
+                          color: HakiColors.textDisabled,
                         ),
-                      )
-                    else
-                      Icon(
-                        Icons.remove,
-                        size: 16,
-                        color: HakiColors.textDisabled,
+                      const SizedBox(height: 6),
+                      Text(
+                        isToday
+                            ? 'Today'
+                            : (isFuture ? 'Goal' : (studied ? 'Done' : '—')),
+                        style: HakiTypography.labelSm.copyWith(
+                          fontSize: 9,
+                          color: isToday
+                              ? Colors.white
+                              : (isFuture
+                                  ? HakiColors.textDisabled
+                                  : HakiColors.textSecondary),
+                        ),
                       ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isToday
-                          ? 'Today'
-                          : (isFuture ? 'Goal' : (studied ? 'Done' : '—')),
-                      style: HakiTypography.labelSm.copyWith(
-                        fontSize: 9,
-                        color: isToday
-                            ? Colors.white
-                            : (isFuture
-                                ? HakiColors.textDisabled
-                                : HakiColors.textSecondary),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }),
-        ),
+              );
+            }),
+          ),
         ],
       ),
     );

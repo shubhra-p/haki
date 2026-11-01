@@ -201,15 +201,10 @@ class CsvParser {
     }
 
     // Use the csv package for proper RFC 4180 parsing
-    const converter = CsvToListConverter(
-      shouldParseNumbers: false,
-      allowInvalid: true,
-      eol: '\n',
-    );
-
     final List<List<dynamic>> allRows;
     try {
-      allRows = converter.convert(normalized);
+      allRows =
+          Csv(dynamicTyping: false, skipEmptyLines: false).decode(normalized);
     } catch (e) {
       return CsvParseResult(
         rows: const [],

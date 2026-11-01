@@ -123,18 +123,22 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv', 'tsv', 'txt'],
-        withData: true,
       );
 
-      if (result != null && result.files.isNotEmpty) {
-        final file = result.files.first;
+      if (result.isNotEmpty) {
+        final file = result.first;
         String content = '';
-        if (file.bytes != null && file.bytes!.isNotEmpty) {
-          content = CsvParser.decodeBytes(file.bytes!);
-        } else if (file.path != null && file.path!.isNotEmpty) {
+        try {
+          final bytes = await file.readAsBytes();
+          if (bytes.isNotEmpty) {
+            content = CsvParser.decodeBytes(bytes);
+          }
+        } catch (_) {}
+
+        if (content.isEmpty && file.path != null && file.path!.isNotEmpty) {
           final ioFile = File(file.path!);
           if (await ioFile.exists()) {
             final bytes = await ioFile.readAsBytes();
@@ -182,7 +186,8 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
     final lower = fileName.toLowerCase();
     if (lower.contains('japanese') ||
         lower.contains('jlpt') ||
-        RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]').hasMatch(content)) {
+        RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]')
+            .hasMatch(content)) {
       return 'Japanese';
     }
     if (lower.contains('korean') ||
@@ -989,9 +994,7 @@ class _CsvImportScreenState extends ConsumerState<CsvImportScreen> {
             selectedIndex < headers.length);
     final int? effectiveValue = hasMatchingItem
         ? selectedIndex
-        : (allowNone
-            ? null
-            : (headers.isNotEmpty ? 0 : null));
+        : (allowNone ? null : (headers.isNotEmpty ? 0 : null));
 
     return Row(
       children: [
